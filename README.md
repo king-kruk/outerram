@@ -6,7 +6,7 @@ OuterRAM is a fail-closed orchestration and compatibility layer for running larg
 
 It does not reimplement model math. OuterRAM inspects the Mac and checkpoint, reserves headroom for macOS/IDE/KV cache/runtime work, validates the selected path, and launches a compatible runtime.
 
-> **Release candidate:** `0.3.0rc1`. Package, planner, API, security and virtual qualification are automated. Real Metal/performance claims remain hardware- and model-specific until physical Apple Silicon qualification is recorded.
+> **Release candidate:** `0.3.0rc2`. Package, planner, API, security and virtual qualification are automated. Real Metal/performance claims remain hardware- and model-specific until physical Apple Silicon qualification is recorded.
 
 ## How it works
 
@@ -29,7 +29,7 @@ OuterRAM is **not tied to one Mac configuration**. The planner uses the detected
 | macOS 14.0+ | ✅ Supported | Current minimum for the pinned MLX runtime stack. |
 | macOS 13.x or older | ❌ Execution unsupported | Fails closed before real runtime execution. |
 | Intel Macs | ❌ Execution unsupported | Current adapters require Apple Silicon. |
-| Linux / Windows | ⚠️ Planning/tests only | No real MLX execution backend is exposed there today. |
+| Linux / Windows | ⚠️ Planning/tests only | Host inspection and planning are supported; no real MLX execution backend is exposed there today. |
 | Python 3.10+ | ✅ Core/resident/MoE | `dense-stream` requires Python 3.11+. |
 | MLX / safetensors checkpoints | ✅ Primary format | Completeness and architecture are validated before launch. |
 | Dense models | ✅ | Resident or dense streaming when the pinned backend supports the family. |
@@ -40,7 +40,7 @@ OuterRAM is **not tied to one Mac configuration**. The planner uses the detected
 
 See [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) for the full contract.
 
-## Quick install on macOS
+## Quick install
 
 OuterRAM is a Python CLI, so it is installed as an isolated command-line tool rather than through npm.
 
@@ -49,7 +49,7 @@ OuterRAM is a Python CLI, so it is installed as an isolated command-line tool ra
 If you already have [`uv`](https://docs.astral.sh/uv/) installed:
 
 ```bash
-uv tool install git+https://github.com/king-kruk/outerram.git
+uv tool install outerram
 outerram --version
 ```
 
@@ -58,13 +58,13 @@ outerram --version
 If you already have [`pipx`](https://pipx.pypa.io/) installed:
 
 ```bash
-pipx install git+https://github.com/king-kruk/outerram.git
+pipx install outerram
 outerram --version
 ```
 
 Both methods install `outerram` into an isolated environment and expose the `outerram` command without requiring you to clone the repository or manage a project virtual environment manually.
 
-> The current public release candidate is installed directly from GitHub. PyPI and Homebrew distribution are planned separately; commands such as `pipx install outerram` or `brew install outerram` should only be used once an official package/formula has been published.
+> Release candidates are published on PyPI. Homebrew distribution is planned separately.
 
 ## Install for development / source testing
 
@@ -175,6 +175,7 @@ Routine PR CI includes:
 - Bandit static security analysis;
 - unit/regression tests and compile checks;
 - synthetic smoke tests;
+- Windows host-detection regression coverage;
 - wheel build and legal metadata verification;
 - dependency-license inventory and CycloneDX SBOM generation;
 - `pip-audit` vulnerability scanning.
@@ -185,7 +186,7 @@ GitHub Actions are pinned to immutable commit SHAs. CodeQL is configured for the
 
 OuterRAM was developed privately under the provisional name **StretchMLX**. The project was renamed before public launch so the product name no longer embeds the name of Apple's MLX framework.
 
-For **one transition release (`0.3.0rc1`) only**:
+During the **`0.3.0` release-candidate transition window**:
 
 - `outerram` is the canonical command and package identity;
 - the `stretchmlx` CLI entry point remains as a deprecated compatibility alias;
