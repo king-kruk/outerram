@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "outerram"
-version = "0.3.0rc1"
+version = "0.3.0rc2"
 description = "Run bigger local models than memory can hold on Apple Silicon, with fail-closed runtime planning and SSD streaming."
 readme = "README.md"
 requires-python = ">=3.10"

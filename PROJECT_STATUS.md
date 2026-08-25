@@ -1,8 +1,8 @@
 # OuterRAM project status
 
-Current candidate: **0.3.0rc1**
+Current candidate: **0.3.0rc2**
 
-OuterRAM is now a public-source project. The former private provisional StretchMLX name remains only in the one-release compatibility surface and historical migration notes.
+OuterRAM is now a public-source project. The former private provisional StretchMLX name remains only in the `0.3.0` release-candidate compatibility surface and historical migration notes.
 
 ## Completed
 
@@ -27,6 +27,7 @@ OuterRAM is now a public-source project. The former private provisional StretchM
 - repository description and public topics configured
 - public-release platform approvals recorded in `legal/RELEASE_APPROVALS.json`
 - CI permanently enforces `legal-gate.py --mode public` while the repository is public
+- Windows planning/diagnostics host detection validated on a real `windows-latest` runner for `0.3.0rc2`
 
 ## Public source status
 

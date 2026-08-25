@@ -46,6 +46,37 @@ def _linux_mem_bytes() -> int | None:
         return None
 
 
+def _windows_mem_bytes() -> int | None:
+    """Return total physical memory using the native Windows API."""
+    try:
+        import ctypes
+
+        class MEMORYSTATUSEX(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_uint32),
+                ("dwMemoryLoad", ctypes.c_uint32),
+                ("ullTotalPhys", ctypes.c_uint64),
+                ("ullAvailPhys", ctypes.c_uint64),
+                ("ullTotalPageFile", ctypes.c_uint64),
+                ("ullAvailPageFile", ctypes.c_uint64),
+                ("ullTotalVirtual", ctypes.c_uint64),
+                ("ullAvailVirtual", ctypes.c_uint64),
+                ("ullAvailExtendedVirtual", ctypes.c_uint64),
+            ]
+
+        status = MEMORYSTATUSEX()
+        status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        global_memory_status_ex = kernel32.GlobalMemoryStatusEx
+        global_memory_status_ex.argtypes = [ctypes.POINTER(MEMORYSTATUSEX)]
+        global_memory_status_ex.restype = ctypes.c_int
+        if not global_memory_status_ex(ctypes.byref(status)):
+            return None
+        return int(status.ullTotalPhys)
+    except (AttributeError, OSError, TypeError, ValueError):
+        return None
+
+
 def _free_disk_gib(path: Path | None = None) -> float | None:
     try:
         target = path or Path.home()
@@ -92,9 +123,16 @@ def _parse_power_source(text: str | None) -> str | None:
 def detect_machine() -> MachineInfo:
     system = platform.system()
     machine = platform.machine()
-    mem = _darwin_mem_bytes() if system == "Darwin" else _linux_mem_bytes()
+    if system == "Darwin":
+        mem = _darwin_mem_bytes()
+    elif system == "Linux":
+        mem = _linux_mem_bytes()
+    elif system == "Windows":
+        mem = _windows_mem_bytes()
+    else:
+        mem = None
     if not mem:
-        raise RuntimeError("Could not determine total system memory")
+        raise RuntimeError(f"Could not determine total system memory on {system or 'unknown platform'}")
     apple_silicon = system == "Darwin" and machine in {"arm64", "aarch64"}
     chip = None
     swap_used = None
