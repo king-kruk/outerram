@@ -40,9 +40,39 @@ OuterRAM is **not tied to one Mac configuration**. The planner uses the detected
 
 See [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) for the full contract.
 
-## Install for development / source testing
+## Quick install on macOS
+
+OuterRAM is a Python CLI, so it is installed as an isolated command-line tool rather than through npm.
+
+### Option 1 — `uv` (recommended)
+
+If you already have [`uv`](https://docs.astral.sh/uv/) installed:
 
 ```bash
+uv tool install git+https://github.com/king-kruk/outerram.git
+outerram --version
+```
+
+### Option 2 — `pipx`
+
+If you already have [`pipx`](https://pipx.pypa.io/) installed:
+
+```bash
+pipx install git+https://github.com/king-kruk/outerram.git
+outerram --version
+```
+
+Both methods install `outerram` into an isolated environment and expose the `outerram` command without requiring you to clone the repository or manage a project virtual environment manually.
+
+> The current public release candidate is installed directly from GitHub. PyPI and Homebrew distribution are planned separately; commands such as `pipx install outerram` or `brew install outerram` should only be used once an official package/formula has been published.
+
+## Install for development / source testing
+
+Use this path if you want to modify OuterRAM or run the repository test suite:
+
+```bash
+git clone https://github.com/king-kruk/outerram.git
+cd outerram
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -U pip
