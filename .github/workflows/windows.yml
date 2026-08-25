@@ -1,0 +1,42 @@
+name: windows-compat
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-compat-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -U pip
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m pytest -q tests/test_machine.py
+      - run: python -m compileall -q src/outerram src/stretchmlx tests scripts
+      - name: Verify doctor reports Windows host without crashing
+        shell: pwsh
+        run: |
+          $output = & outerram doctor 2>&1
+          $exitCode = $LASTEXITCODE
+          $text = $output | Out-String
+          Write-Host $text
+          if ($exitCode -ne 2) {
+            throw "Expected outerram doctor to exit 2 on a non-Apple-Silicon Windows host, got $exitCode"
+          }
+          if ($text -notmatch "system: Windows") {
+            throw "outerram doctor did not report the Windows host"
+          }
+          if ($text -notmatch "total_memory_gib:") {
+            throw "outerram doctor did not report total system memory"
+          }
