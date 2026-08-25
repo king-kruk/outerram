@@ -23,7 +23,10 @@ def test_release_evidence_records_current_public_state_and_file_hashes():
     assert evidence["git_commit"] == commit
     assert evidence["project_license"] == "MIT"
     assert evidence["legal_gate_results"]["internal"]["ok"] is True
+    assert evidence["legal_gate_results"]["pre-public"]["ok"] is True
+    assert evidence["legal_gate_results"]["public"]["ok"] is False
     assert evidence["release_approval_status"]["public_release"]["trademark_clearance"] == "approved"
+    assert evidence["release_approval_status"]["public_release"]["git_history_privacy"] == "approved"
     assert evidence["statements"]["model_weights_bundled"] is False
     assert evidence["statements"]["legal_clearance_inferred_from_model_metadata"] is False
     for required in ("LICENSE", "THIRD_PARTY_NOTICES.md", "TRADEMARKS.md", "legal/RELEASE_APPROVALS.json"):
