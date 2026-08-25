@@ -11,8 +11,12 @@
       "note": "The provisional StretchMLX product name is retired before public launch and the project is renamed OuterRAM, removing the known product-name dependency on Apple's MLX framework name. This rename-based approval is risk reduction, not a formal trademark clearance opinion for OuterRAM in every jurisdiction or class."
     },
     "git_history_privacy": {
-      "status": "pending",
-      "note": "The new king-kruk/outerram repository was created from a clean baseline with no ancestry to the private development archive. Keep this pending until the complete imported tree, all reachable refs, commit identities and secret/privacy scans are verified and the final stage-2 PR gate is green."
+      "status": "approved",
+      "review_type": "clean-repository-migration",
+      "reviewed_by": "project-maintainer",
+      "reviewed_at": "2026-08-25",
+      "evidence": ["root commit d63f3f0abe492ee6ec4c633f4127c8e92d26f968", "PR #3", "GitHub Actions run 32859779078", "scripts/security-gate.py"],
+      "note": "The public-candidate repository was rebuilt from a new orphan root with no parent or ancestry to the private development archive. Pre-publication commits were verified to use the GitHub noreply identity, only new-repository branches are reachable, the private archive remains separate/private, and the repository security scan and final hardening PR gate passed."
     },
     "repository_branch_protection": {
       "status": "pending",
