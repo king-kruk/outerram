@@ -82,7 +82,7 @@ def gate_results() -> dict[str, dict]:
         raise RuntimeError("could not load legal gate")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return {mode: module.run(mode) for mode in ("internal", "public", "commercial")}
+    return {mode: module.run(mode) for mode in ("internal", "pre-public", "public", "commercial")}
 
 
 def build_evidence(commit: str) -> dict:
