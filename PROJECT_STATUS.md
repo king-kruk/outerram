@@ -2,7 +2,7 @@
 
 Current candidate: **0.3.0rc1**
 
-OuterRAM is the selected public project name. The former private provisional StretchMLX name remains only in the one-release compatibility surface and historical migration notes.
+OuterRAM is now a public-source project. The former private provisional StretchMLX name remains only in the one-release compatibility surface and historical migration notes.
 
 ## Completed
 
@@ -18,16 +18,20 @@ OuterRAM is the selected public project name. The former private provisional Str
 - clean public-repository history baseline with GitHub `noreply` identity; the prior development repository is retained separately as a private archive
 - automated pre-public history/privacy gate covering all fetched reachable refs
 - explicit `pre-public` release-policy gate separated from the stricter post-visibility `public` gate
+- repository visibility changed to **Public** on 2026-08-25
+- `main` branch protection remains enabled and requires the `pr-gate` status check for everyone
+- dependency graph / Dependabot graph update is active on the public repository
 
-## Required immediately around the visibility change
+## Post-public activation in progress
 
-Before changing visibility, the exact candidate must pass:
+The source repository is public, but announcement remains on hold until the public-only controls are verified:
 
-```bash
-./scripts/pre-public-release-gate.sh
-```
+- successful CodeQL run on the public `main` branch
+- secret scanning and push protection verified
+- Private Vulnerability Reporting enabled
+- final `public` legal gate recorded as passing
 
-GitHub controls that are available while the repository is private should be configured before the change. Controls that are public-only on the current account tier — such as public CodeQL/secret-scanning/Private Vulnerability Reporting, and branch rules on GitHub Free personal repositories — must be enabled or verified immediately after the repository becomes public and **before announcement**. Then run the strict public gate:
+After these controls are verified, run:
 
 ```bash
 ./scripts/public-release-gate.sh
