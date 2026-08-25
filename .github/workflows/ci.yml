@@ -28,8 +28,14 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
+      - name: Pre-public history privacy
+        if: github.event.repository.private == true
+        run: python scripts/pre-public-history-gate.py
       - name: Legal policy
         run: python scripts/legal-gate.py --mode internal --json
+      - name: Pre-public release policy
+        if: github.event.repository.private == true
+        run: python scripts/legal-gate.py --mode pre-public --json
       - name: Repository security policy
         run: python scripts/security-gate.py
       - name: Require DCO sign-off on external contributions
