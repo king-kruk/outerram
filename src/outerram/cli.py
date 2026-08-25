@@ -43,6 +43,14 @@ def _effective_api_key(args) -> str | None:
     return args.api_key or os.environ.get("OUTERRAM_API_KEY") or os.environ.get("STRETCHMLX_API_KEY")
 
 
+def _isolated_python_environment() -> bool:
+    """Return whether runtime bootstrap is isolated from the user's base Python."""
+    if os.environ.get("VIRTUAL_ENV") or os.environ.get("CONDA_PREFIX"):
+        return True
+    base_prefix = getattr(sys, "base_prefix", sys.prefix)
+    return sys.prefix != base_prefix
+
+
 def cmd_doctor(args) -> int:
     machine = detect_machine()
     os_check = macos_runtime_check(machine)
@@ -116,6 +124,13 @@ def cmd_bootstrap(args) -> int:
         if os_check.remediation:
             print(f"fix: {os_check.remediation}", file=sys.stderr)
         return 2
+    if not _isolated_python_environment() and not args.allow_system_python:
+        print(
+            "Refusing runtime bootstrap outside an isolated Python environment because pip upgrades could modify the user's base Python. ",
+            "Create/activate a venv (recommended) or Conda environment, then retry. Use --allow-system-python only if you intentionally accept base-environment modification.",
+            file=sys.stderr,
+        )
+        return 3
     if shutil.which("git") is None:
         print("git is required for reproducible runtime bootstrap. Install macOS Command Line Tools and retry.", file=sys.stderr)
         return 3
