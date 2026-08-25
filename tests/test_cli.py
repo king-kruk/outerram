@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import outerram.cli as cli
+from outerram.cli_parser import build_parser
 from outerram.types import (
     CheckpointKind,
     CompatibilityCheck,
@@ -32,6 +33,36 @@ def _plan():
 
 def _compat():
     return CompatibilityReport(True, (CompatibilityCheck("ok", True, "error", "ok"),))
+
+
+def test_bootstrap_parser_defaults_to_protecting_base_python():
+    args = build_parser().parse_args(["bootstrap", "model"])
+    assert args.allow_system_python is False
+    override = build_parser().parse_args(["bootstrap", "model", "--allow-system-python"])
+    assert override.allow_system_python is True
+
+
+def test_bootstrap_refuses_base_python_by_default(monkeypatch, capsys):
+    called = {"run": False}
+    monkeypatch.setattr(cli, "_make_plan", lambda args: (_machine(), _model(), _plan()))
+    monkeypatch.setattr(cli, "_isolated_python_environment", lambda: False)
+    monkeypatch.setattr(cli, "run_bootstrap", lambda commands: called.__setitem__("run", True) or 0)
+    args = SimpleNamespace(streamlx_home=None, latest=False, dry_run=False, allow_system_python=False)
+    assert cli.cmd_bootstrap(args) == 3
+    assert called["run"] is False
+    assert "Refusing runtime bootstrap outside an isolated Python environment" in capsys.readouterr().err
+
+
+def test_bootstrap_system_python_override_is_explicit(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(cli, "_make_plan", lambda args: (_machine(), _model(), _plan()))
+    monkeypatch.setattr(cli, "_isolated_python_environment", lambda: False)
+    monkeypatch.setattr(cli.shutil, "which", lambda executable: "/usr/bin/git" if executable == "git" else None)
+    monkeypatch.setattr(cli, "run_bootstrap", lambda commands: (captured.update(commands=commands), 0)[1])
+    args = SimpleNamespace(streamlx_home=None, latest=False, dry_run=False, allow_system_python=True)
+    result = cli.cmd_bootstrap(args)
+    assert result == 0
+    assert captured["commands"]
 
 
 def test_ready_is_fail_closed_on_unpinned_runtime(monkeypatch):

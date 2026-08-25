@@ -14,27 +14,42 @@ This checklist is specifically for changing the **source repository visibility**
 ### 2. Public Git history/privacy — ✅ resolved by clean repository baseline
 
 - `king-kruk/outerram` was created as a new empty private repository rather than publishing the prior development repository.
-- Its history begins with clean OuterRAM commits using the maintainer's GitHub `noreply` identity and has no ancestry to the private development archive.
+- Its history begins with a parentless OuterRAM root commit and has no ancestry to the private development archive.
+- Pre-publication maintainer commits use the GitHub `noreply` identity.
 - The former development repository is retained separately as a private archive and must remain private.
-- Before visibility changes, re-check all reachable branches/commits in `king-kruk/outerram`, confirm no personal commit email or secret is present, and verify the current tree with the repository security gate.
+- Final hardening CI runs the repository security gate over the tracked publication tree.
 
-### 3. Repository protection and security settings — pending
+### 3. Pre-public GitHub controls — configure when the private-repository tier exposes them
 
-Configure GitHub before the visibility change:
+Before changing visibility, configure every control that GitHub makes available to the current private repository/account tier:
 
 - protect `main` with a ruleset/branch protection requiring pull requests;
 - require the always-on `pr-gate` status check;
 - block force pushes and branch deletion on `main`;
 - keep normal contributor/admin bypass disabled except for deliberate break-glass recovery;
-- enable secret scanning and push protection when available;
-- enable dependency graph, Dependabot alerts and Dependabot security updates;
-- enable Private Vulnerability Reporting for confidential security reports;
+- enable the dependency graph, Dependabot alerts and Dependabot security updates;
 - keep GitHub Actions default workflow permissions read-only unless a workflow explicitly needs more;
 - allow only reviewed GitHub Actions and keep external actions pinned to immutable commit SHAs.
 
-### 4. Public-facing repository metadata — pending
+On GitHub Free personal accounts, branch rulesets/protection for a private repository are not available until the repository is public; on GitHub Pro they can be configured while private. This tier-dependent limitation is why `pre-public` and `public` are separate gates.
 
-Before announcement:
+The repository already contains a pinned CodeQL workflow, Dependabot configuration, `SECURITY.md`, and an always-on Bandit/security/pip-audit PR gate.
+
+### 4. Public-only security controls — enable/verify immediately after visibility changes
+
+Some GitHub security capabilities are not available to ordinary user-owned private repositories without paid GitHub security products, but become available for public repositories. Visibility must not be treated as the end of the publication procedure. Immediately after changing the repository to public:
+
+- verify GitHub secret scanning is active for the public repository;
+- verify user/repository push protection behavior and enable repository-level push protection if the account exposes that control;
+- run/dispatch the pinned CodeQL workflow and require a successful result before announcement;
+- enable Private Vulnerability Reporting;
+- re-check Dependabot alerts/security updates and the dependency graph;
+- create/verify the `main` ruleset or branch protection if the private-repository tier did not expose it;
+- verify branch protection/rulesets remain effective after the visibility transition.
+
+Do not announce the repository until this post-visibility verification is complete.
+
+### 5. Public-facing repository metadata — required before announcement
 
 - add a concise repository description;
 - add relevant topics such as `apple-silicon`, `mlx`, `llm`, `local-llm`, `python` and `macos`;
@@ -43,17 +58,25 @@ Before announcement:
 - confirm Issues are enabled and issue templates render correctly;
 - confirm `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `LICENSE`, notices and privacy documentation are visible from the repository root/community profile.
 
-### 5. Final source-publication gates — pending
+### 6. Final pre-publication gates — required before changing visibility
 
 From a clean checkout of the exact commit intended for publication:
 
 ```bash
 python scripts/security-gate.py
-python scripts/legal-gate.py --mode public
+python scripts/legal-gate.py --mode pre-public
 ./scripts/quality-gate.sh
 ```
 
-All must pass. Review the generated dependency/license/SBOM evidence and confirm no unsupported performance or legal claims were introduced.
+All pre-public gates must pass. Review the generated dependency/license/SBOM evidence and confirm no unsupported performance or legal claims were introduced.
+
+After changing visibility and completing the platform-control steps above, run:
+
+```bash
+python scripts/legal-gate.py --mode public
+```
+
+The `public` gate is intentionally stricter than `pre-public`: it requires the GitHub platform controls to have been verified and recorded as approved before announcement.
 
 ## Required before calling a release “hardware validated”
 

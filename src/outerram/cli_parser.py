@@ -55,6 +55,11 @@ def build_parser() -> argparse.ArgumentParser:
     _add_plan_args(bootstrap)
     bootstrap.add_argument("--streamlx-home", default=None)
     bootstrap.add_argument("--latest", action="store_true", help="Use upstream HEAD instead of OuterRAM's tested revision pins")
+    bootstrap.add_argument(
+        "--allow-system-python",
+        action="store_true",
+        help="Allow pip-based runtime installation outside a venv/Conda environment (may modify the base Python)",
+    )
     bootstrap.add_argument("--dry-run", action="store_true")
     bootstrap.set_defaults(func=cmd_bootstrap)
 

@@ -15,12 +15,25 @@ OuterRAM is the selected public project name. The former private provisional Str
 - package/legal metadata, SBOM and release evidence
 - security hardening: secret/action pin gate, Bandit, pip-audit, safe model fetch, transport/resource guards
 - public contribution/security templates and publication checklist
-- clean public-repository history baseline with GitHub noreply identity; the prior development repository is retained separately as a private archive
+- clean public-repository history baseline with GitHub `noreply` identity; the prior development repository is retained separately as a private archive
+- automated pre-public history/privacy gate covering all fetched reachable refs
+- explicit `pre-public` release-policy gate separated from the stricter post-visibility `public` gate
 
-## Still required before repository visibility changes
+## Required immediately around the visibility change
 
-- enable repository ruleset/branch protection and public security features documented in `docs/PUBLICATION_CHECKLIST.md`
-- run the final source-publication gates on the exact public candidate commit
+Before changing visibility, the exact candidate must pass:
+
+```bash
+./scripts/pre-public-release-gate.sh
+```
+
+GitHub controls that are available while the repository is private should be configured before the change. Controls that are public-only on the current account tier — such as public CodeQL/secret-scanning/Private Vulnerability Reporting, and branch rules on GitHub Free personal repositories — must be enabled or verified immediately after the repository becomes public and **before announcement**. Then run the strict public gate:
+
+```bash
+./scripts/public-release-gate.sh
+```
+
+See `docs/PUBLICATION_CHECKLIST.md` for the exact platform checklist.
 
 ## Separate validated-release work
 

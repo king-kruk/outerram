@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Static legal/release-policy gate for OuterRAM.
 
-This is a compliance aid, not legal advice. It deliberately fails closed for
-public/validated/commercial modes while required human approvals are pending.
+This is a compliance aid, not legal advice. It deliberately separates the
+private-repository pre-public readiness check from controls that can only be
+verified after the repository is public on some GitHub account tiers.
 """
 
 from __future__ import annotations
@@ -41,6 +42,15 @@ PIN_NAMES = {
     "mlx-lm": "MLX_LM_REF",
     "mlx-flash": "MLX_FLASH_REF",
     "streamlx": "STREAMLX_REF",
+}
+
+# These are real public-operation controls, not code-review approvals. On some
+# personal GitHub tiers they cannot be enabled/verified while the repository is
+# private. They remain mandatory for --mode public, but do not block the honest
+# "safe to change visibility" gate.
+POST_VISIBILITY_PLATFORM_APPROVALS = {
+    "repository_branch_protection",
+    "repository_security_features",
 }
 
 
@@ -115,8 +125,18 @@ def _check_section_shape(approvals: dict, section: str, errors: list[str]) -> No
         errors.extend(_approval_errors(section, name, item))
 
 
-def _require_section(approvals: dict, section: str, label: str, errors: list[str]) -> None:
+def _require_section(
+    approvals: dict,
+    section: str,
+    label: str,
+    errors: list[str],
+    *,
+    exclude: set[str] | None = None,
+) -> None:
+    excluded = exclude or set()
     for name, item in approvals.get(section, {}).items():
+        if name in excluded:
+            continue
         if not isinstance(item, dict) or item.get("status") != "approved":
             status = item.get("status", "missing") if isinstance(item, dict) else "invalid"
             note = item.get("note", "") if isinstance(item, dict) else ""
@@ -181,6 +201,22 @@ def run(mode: str) -> dict:
     approvals = _load_json("legal/RELEASE_APPROVALS.json") if (ROOT / "legal/RELEASE_APPROVALS.json").is_file() else {}
     for section in ("public_release", "validated_release", "commercial_release"):
         _check_section_shape(approvals, section, errors)
+
+    if mode == "pre-public":
+        _require_section(
+            approvals,
+            "public_release",
+            "pre-public release",
+            errors,
+            exclude=POST_VISIBILITY_PLATFORM_APPROVALS,
+        )
+        for name in sorted(POST_VISIBILITY_PLATFORM_APPROVALS):
+            item = approvals.get("public_release", {}).get(name, {})
+            if not isinstance(item, dict) or item.get("status") != "approved":
+                warnings.append(
+                    f"post-visibility platform control {name} remains {item.get('status', 'missing') if isinstance(item, dict) else 'invalid'}; "
+                    "verify immediately after making the repository public and before announcement"
+                )
     if mode in {"public", "validated", "commercial"}:
         _require_section(approvals, "public_release", "public release", errors)
     if mode == "validated":
@@ -207,7 +243,7 @@ def run(mode: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="OuterRAM legal/release policy gate")
-    parser.add_argument("--mode", choices=("internal", "public", "validated", "commercial"), default="internal")
+    parser.add_argument("--mode", choices=("internal", "pre-public", "public", "validated", "commercial"), default="internal")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     result = run(args.mode)
