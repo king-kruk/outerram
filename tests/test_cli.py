@@ -58,7 +58,7 @@ def test_bootstrap_system_python_override_is_explicit(monkeypatch):
     monkeypatch.setattr(cli, "_make_plan", lambda args: (_machine(), _model(), _plan()))
     monkeypatch.setattr(cli, "_isolated_python_environment", lambda: False)
     monkeypatch.setattr(cli.shutil, "which", lambda executable: "/usr/bin/git" if executable == "git" else None)
-    monkeypatch.setattr(cli, "run_bootstrap", lambda commands: captured.setdefault("commands", commands) or 0)
+    monkeypatch.setattr(cli, "run_bootstrap", lambda commands: (captured.update(commands=commands), 0)[1])
     args = SimpleNamespace(streamlx_home=None, latest=False, dry_run=False, allow_system_python=True)
     result = cli.cmd_bootstrap(args)
     assert result == 0
