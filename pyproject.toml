@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=77.0.3", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "outerram"
+version = "0.3.0rc1"
+description = "Run bigger local models than memory can hold on Apple Silicon, with fail-closed runtime planning and SSD streaming."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "OuterRAM contributors"}]
+dependencies = [
+  "huggingface-hub>=0.34,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "build>=1.2"]
+
+[project.scripts]
+outerram = "outerram.entry:main"
+stretchmlx = "outerram.entry:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
