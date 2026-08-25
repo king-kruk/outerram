@@ -1,8 +1,8 @@
 """Deprecated compatibility namespace for the pre-public OuterRAM project name.
 
 New code must import :mod:`outerram`. This namespace remains for the
-0.3.0rc1 transition release only and forwards legacy module imports to the
-single OuterRAM implementation so the two names cannot drift.
+0.3.0 release-candidate transition window and forwards legacy module imports
+to the single OuterRAM implementation so the two names cannot drift.
 """
 
 from __future__ import annotations
