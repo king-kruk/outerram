@@ -64,7 +64,7 @@ jobs:
         run: |
           python -m pip install --upgrade twine
           python -m twine check dist/*
-          python scripts/wheel-legal-metadata.py dist/*.whl
+          python scripts/verify-wheel-legal-metadata.py dist/*.whl
 
       - name: Smoke-test built wheel
         shell: bash
