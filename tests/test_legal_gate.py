@@ -35,6 +35,17 @@ def test_internal_legal_gate_passes_but_reports_pending_human_reviews():
     assert report["ok"] is True
     assert not any("trademark_clearance" in warning for warning in report["warnings"])
     assert not any("dependency_license_review" in warning for warning in report["warnings"])
+    assert not any("git_history_privacy" in warning for warning in report["warnings"])
+
+
+def test_pre_public_gate_passes_when_only_post_visibility_platform_controls_are_pending():
+    proc = run_gate("pre-public")
+    report = json.loads(proc.stdout)
+    assert proc.returncode == 0, proc.stdout
+    assert report["ok"] is True
+    warnings = "\n".join(report["warnings"])
+    assert "repository_branch_protection" in warnings
+    assert "repository_security_features" in warnings
 
 
 def test_public_legal_gate_reflects_machine_readable_release_approvals():
