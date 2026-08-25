@@ -1,0 +1,29 @@
+name: Feature request
+description: Propose a focused improvement to OuterRAM
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What concrete problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful change and how a user would interact with it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing runtimes, workflows or workarounds you considered.
+  - type: textarea
+    id: safety
+    attributes:
+      label: Compatibility / security considerations
+      description: Note any effects on model trust, remote access, resource usage, licenses or supported platforms.

@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible OuterRAM defect
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Do **not** include API keys, credentials, private model data, proprietary prompts, or other sensitive information. For security vulnerabilities, follow `SECURITY.md` instead of opening a public issue.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest reproducible sequence of commands or actions.
+      placeholder: |
+        1. outerram doctor
+        2. outerram check ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Paste a redacted `outerram report` when possible. Remove private paths/model names if necessary.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Include only the minimum relevant, redacted output.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed secrets, credentials and private data from this report.
+          required: true
+        - label: This is not a confidential security vulnerability.
+          required: true

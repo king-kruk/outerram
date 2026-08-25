@@ -1,0 +1,14 @@
+# Legal/release-sensitive files should be explicitly reviewed by the repository owner.
+* @king-kruk
+
+/LEGAL.md @king-kruk
+/TRADEMARKS.md @king-kruk
+/THIRD_PARTY_NOTICES.md @king-kruk
+/PRIVACY.md @king-kruk
+/DCO.md @king-kruk
+/SECURITY.md @king-kruk
+/legal/ @king-kruk
+/scripts/legal-gate.py @king-kruk
+/scripts/dependency-license-report.py @king-kruk
+/scripts/model-license-check.py @king-kruk
+/.github/workflows/ @king-kruk
