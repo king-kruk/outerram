@@ -27,6 +27,8 @@ jobs:
       - name: Verify doctor reports Windows host without crashing
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Continue'
+          $PSNativeCommandUseErrorActionPreference = $false
           $output = & outerram doctor 2>&1
           $exitCode = $LASTEXITCODE
           $text = $output | Out-String
@@ -40,3 +42,4 @@ jobs:
           if ($text -notmatch "total_memory_gib:") {
             throw "outerram doctor did not report total system memory"
           }
+          exit 0
