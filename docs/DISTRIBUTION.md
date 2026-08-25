@@ -6,7 +6,7 @@ OuterRAM uses package-manager distribution for end users and keeps source/develo
 
 ### PyPI
 
-Once the PyPI publisher is activated and the first release is published, the primary install command is:
+OuterRAM release candidates are published on PyPI. The primary install command is:
 
 ```bash
 uv tool install outerram
@@ -18,7 +18,7 @@ Alternative isolated Python CLI install:
 pipx install outerram
 ```
 
-Until the first PyPI upload exists, users can install directly from GitHub:
+For development snapshots that are not published to PyPI, users can install directly from GitHub:
 
 ```bash
 uv tool install git+https://github.com/king-kruk/outerram.git
@@ -42,9 +42,9 @@ must not be advertised until an `outerram` formula has been accepted into `homeb
 
 ## PyPI trusted publishing
 
-PyPI publication is designed to use GitHub OIDC Trusted Publishing. No long-lived PyPI API token belongs in GitHub secrets.
+PyPI publication uses GitHub OIDC Trusted Publishing. No long-lived PyPI API token belongs in GitHub secrets.
 
-One-time PyPI publisher configuration:
+Publisher configuration:
 
 - PyPI project: `outerram`
 - GitHub owner: `king-kruk`
@@ -52,14 +52,12 @@ One-time PyPI publisher configuration:
 - Workflow filename: `release.yml`
 - Environment: `pypi`
 
-For a new PyPI project, configure these values as a **pending Trusted Publisher**. The first successful upload creates the project and converts the publisher to a normal Trusted Publisher.
-
 ## Release procedure
 
 1. Ensure `main` is green and the intended package version in `pyproject.toml` is correct.
-2. Create a GitHub Release whose tag is exactly `v<project.version>`; for example `v0.3.0rc1` for project version `0.3.0rc1`.
+2. Create a GitHub Release whose tag is exactly `v<project.version>`; for example `v0.3.0rc2` for project version `0.3.0rc2`.
 3. `.github/workflows/release.yml` verifies the tag/version match, builds wheel + sdist, validates metadata, smoke-installs the wheel, and publishes to PyPI through OIDC.
-4. Verify the package on PyPI and test `uv tool install outerram` on a clean Mac.
+4. Verify the package on PyPI and test `uv tool install outerram` on a clean host.
 5. Build/update the Homebrew tap formula from immutable released artifacts and checksums.
 
 ## Homebrew packaging policy
