@@ -44,7 +44,7 @@ def test_public_legal_gate_reflects_machine_readable_release_approvals():
     pending = [name for name, item in approvals["public_release"].items() if item.get("status") != "approved"]
     rendered = "\n".join(report["errors"])
     assert report["ok"] is (not pending)
-    assert proc.returncode == (0 if not pending else 2)
+    assert proc.returncode == (0 if not pending else 1)
     for name in pending:
         assert name in rendered
 
