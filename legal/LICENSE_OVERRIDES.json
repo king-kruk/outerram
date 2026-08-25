@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "last_reviewed": "2026-08-25",
+  "overrides": [
+    {
+      "package": "streamlx",
+      "version": "0.1.0",
+      "license": "MIT",
+      "source": "srcterm/streamlx",
+      "revision": "146507b59293058b3a1cecc43f47947b25012297",
+      "evidence": "LICENSE at the pinned repository revision",
+      "evidence_url": "https://github.com/srcterm/streamlx/blob/146507b59293058b3a1cecc43f47947b25012297/LICENSE",
+      "reason": "The pinned repository contains an MIT LICENSE, but streamlx 0.1.0 does not declare license metadata in pyproject.toml, so importlib.metadata reports UNKNOWN."
+    }
+  ]
+}

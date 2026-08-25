@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "last_reviewed": "2026-08-25",
+  "components": [
+    {
+      "name": "outerram",
+      "source": "king-kruk/outerram",
+      "license": "MIT",
+      "integration": "project code"
+    },
+    {
+      "name": "mlx-lm",
+      "source": "ml-explore/mlx-lm",
+      "revision": "cc8521569694a3240b52c98acffd100d59b4c755",
+      "license": "MIT",
+      "integration": "separately installed runtime",
+      "note": "Pinned RC6 revision reports mlx-lm 0.32.0 and requires MLX >=0.32.1 on Darwin."
+    },
+    {
+      "name": "mlx-flash",
+      "source": "matt-k-wong/mlx-flash",
+      "revision": "f01b6f15affc054e143c1426ef2c3cc500cdbea8",
+      "license": "MIT",
+      "integration": "separately installed runtime"
+    },
+    {
+      "name": "streamlx",
+      "source": "srcterm/streamlx",
+      "revision": "146507b59293058b3a1cecc43f47947b25012297",
+      "license": "MIT",
+      "integration": "separately installed runtime"
+    },
+    {
+      "name": "huggingface-hub",
+      "source": "huggingface/huggingface_hub",
+      "license": "Apache-2.0",
+      "integration": "Python dependency",
+      "note": "Exact resolved version and transitive dependency set must be captured per release."
+    }
+  ]
+}
