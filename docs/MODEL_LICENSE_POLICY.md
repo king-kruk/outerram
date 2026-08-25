@@ -28,7 +28,7 @@ For a Hugging Face model, OuterRAM resolves the immutable repository revision an
 - the metadata source; and
 - `legal_clearance: false` plus an explicit note that metadata is descriptive evidence only.
 
-During the `0.3.0rc1` migration, OuterRAM can still read the legacy `.stretchmlx-source.json` sidecar when present, but new materializations write `.outerram-source.json`.
+During the `0.3.0` release-candidate migration window, OuterRAM can still read the legacy `.stretchmlx-source.json` sidecar when present, but new materializations write `.outerram-source.json`.
 
 `inspect`, `report`, and environment-bound `qualify` include these fields through `ModelInfo`. This makes the evidence portable/offline after materialization, but it **does not** transform model-card metadata into a legal opinion or usage grant.
 
