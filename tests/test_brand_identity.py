@@ -35,7 +35,7 @@ def test_outerram_is_primary_package_and_cli_identity():
     assert 'outerram = "outerram.entry:main"' in pyproject
     assert 'stretchmlx = "outerram.entry:main"' in pyproject
     assert "macllm" not in pyproject.lower()
-    assert __version__ == "0.3.0rc1"
+    assert __version__ == "0.3.0rc2"
 
 
 def test_active_product_surfaces_do_not_use_retired_name():
