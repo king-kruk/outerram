@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0rc2 — pre-release
+
+Windows planning/diagnostics compatibility fix and release-metadata refresh.
+
+- Fix `outerram doctor` on Windows by detecting physical memory through the native `GlobalMemoryStatusEx` API instead of incorrectly routing Windows through the Linux memory detector.
+- Preserve fail-closed execution semantics: Windows hosts can be inspected/planned, but real MLX execution still requires supported Apple Silicon macOS.
+- Add cross-platform regression coverage and a real `windows-latest` CI gate that verifies host detection and the expected non-Mac `doctor` exit behavior.
+- Refresh release metadata, external-testing guidance and PyPI installation documentation for `0.3.0rc2`.
+- Keep the deprecated `stretchmlx` compatibility alias through the `0.3.0` release-candidate transition window; new integrations remain `outerram`-only.
+
 ## 0.3.0rc1 — pre-release
 
 First OuterRAM public-source release candidate.
@@ -18,6 +28,6 @@ First OuterRAM public-source release candidate.
 
 ### Compatibility window
 
-The project used a different provisional name during private development. For `0.3.0rc1` only, the deprecated `stretchmlx` CLI/import alias and legacy migration metadata/env fallbacks remain available so early private-test setups do not break. New integrations must use `outerram`, `OuterRAM` and `OUTERRAM_*`.
+The project used a different provisional name during private development. For the `0.3.0` release-candidate cycle, the deprecated `stretchmlx` CLI/import alias and legacy migration metadata/env fallbacks remain available so early private-test setups do not break. New integrations must use `outerram`, `OuterRAM` and `OUTERRAM_*`.
 
-The compatibility alias is scheduled for removal after this transition release.
+The compatibility alias is scheduled for removal after the `0.3.0` release-candidate transition window.
