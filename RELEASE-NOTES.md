@@ -1,19 +1,19 @@
-# OuterRAM 0.3.0rc1
+# OuterRAM 0.3.0rc2
 
-Public-source release candidate.
+Public release candidate focused on Windows planning/diagnostics compatibility and release hygiene.
 
 ## Highlights
 
-- OuterRAM is the canonical project, Python package and CLI identity.
-- Resident, dense SSD streaming and exact MoE expert streaming strategies remain fail-closed behind host/model/runtime compatibility checks.
-- Public-repository hardening includes immutable GitHub Action pins, Bandit, `pip-audit`, secret/action policy checks, bounded HTTP/disk diagnostics, model-download trust guards and supply-chain checks.
-- The public repository starts from a clean Git history baseline using a GitHub `noreply` maintainer identity; prior private development history remains in a separate private archive.
-- Model weights are not bundled, and technical compatibility is not represented as model-license clearance.
+- Fixes `outerram doctor` on Windows by using the native Windows physical-memory API instead of incorrectly falling through to the Linux detector.
+- Keeps execution fail-closed: Windows and Linux remain planning/testing hosts only; current real MLX execution requires supported Apple Silicon macOS.
+- Adds a dedicated `windows-latest` GitHub Actions gate covering native memory detection, compilation and the expected `doctor` behavior on a non-Mac host.
+- Refreshes PyPI installation guidance and release metadata for `0.3.0rc2`.
+- Keeps `outerram` as the canonical project, package and CLI identity.
 
-## Claim boundary
+## Validation boundary
 
-This release candidate is suitable for source publication only after the repository-level publication controls and final gates are complete. It does **not** claim physical Apple Silicon performance, TTFT/tok/s, thermal behavior or coding-agent stability until those measurements are recorded through the physical validation workflow.
+This candidate validates package/platform detection and synthetic planning contracts. It does **not** claim physical Apple Silicon performance, TTFT/tok/s, thermal behavior or coding-agent stability until those measurements are recorded through the physical validation workflow.
 
 ## Compatibility window
 
-`outerram` is canonical. The former `stretchmlx` CLI/import surface remains only as a one-release migration compatibility path and is scheduled for removal after `0.3.0rc1`.
+`outerram` is canonical. The former `stretchmlx` CLI/import surface remains only as a deprecated migration compatibility path during the `0.3.0` release-candidate transition window and is scheduled for removal after that window.
