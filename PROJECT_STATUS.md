@@ -17,28 +17,21 @@ OuterRAM is now a public-source project. The former private provisional StretchM
 - public contribution/security templates and publication checklist
 - clean public-repository history baseline with GitHub `noreply` identity; the prior development repository is retained separately as a private archive
 - automated pre-public history/privacy gate covering all fetched reachable refs
-- explicit `pre-public` release-policy gate separated from the stricter post-visibility `public` gate
 - repository visibility changed to **Public** on 2026-08-25
-- `main` branch protection remains enabled and requires the `pr-gate` status check for everyone
-- dependency graph / Dependabot graph update is active on the public repository
-
-## Post-public activation in progress
-
-The source repository is public, but announcement remains on hold until the public-only controls are verified:
-
-- successful CodeQL run on the public `main` branch
-- secret scanning and push protection verified
+- `main` branch protection enabled with required `pr-gate` enforcement for everyone
+- secret scanning enabled
+- secret scanning push protection enabled
+- dependency graph and Dependabot security updates enabled
 - Private Vulnerability Reporting enabled
-- final `public` legal gate recorded as passing
+- pinned CodeQL workflow completed successfully on public `main` (run 32887055503)
+- repository description and public topics configured
+- public-release platform approvals recorded in `legal/RELEASE_APPROVALS.json`
+- CI permanently enforces `legal-gate.py --mode public` while the repository is public
 
-After these controls are verified, run:
+## Public source status
 
-```bash
-./scripts/public-release-gate.sh
-```
-
-See `docs/PUBLICATION_CHECKLIST.md` for the exact platform checklist.
+The public-source publication gate is complete once the protected PR carrying the final platform approvals passes `pr-gate` and is merged. This source-publication status does **not** imply physical Apple Silicon performance validation, patent/FTO clearance, or a production/commercial support commitment.
 
 ## Separate validated-release work
 
-Physical Apple Silicon inference evidence and manual full validation are required before making real hardware/performance claims. They are not prerequisites for publishing source code as an experimental open-source project.
+Physical Apple Silicon inference evidence and manual full validation are required before making real hardware/performance claims or calling a release hardware validated. They are not prerequisites for publishing source code as an experimental open-source project.

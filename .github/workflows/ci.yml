@@ -36,6 +36,9 @@ jobs:
       - name: Pre-public release policy
         if: github.event.repository.private == true
         run: python scripts/legal-gate.py --mode pre-public --json
+      - name: Public release policy
+        if: github.event.repository.private == false
+        run: python scripts/legal-gate.py --mode public --json
       - name: Repository security policy
         run: python scripts/security-gate.py
       - name: Require DCO sign-off on external contributions
