@@ -19,12 +19,20 @@
       "note": "The public-candidate repository was rebuilt from a new orphan root with no parent or ancestry to the private development archive. Pre-publication commits were verified to use the GitHub noreply identity, only new-repository branches are reachable, the private archive remains separate/private, and the repository security scan and final hardening PR gate passed."
     },
     "repository_branch_protection": {
-      "status": "pending",
-      "note": "Before public release, enforce a GitHub ruleset/branch protection requiring pull requests and pr-gate on main, blocking force-push/deletion and avoiding routine bypass of required checks."
+      "status": "approved",
+      "review_type": "github-platform-verification",
+      "reviewed_by": "project-maintainer",
+      "reviewed_at": "2026-08-25",
+      "evidence": ["GitHub main branch protected=true", "required status check pr-gate with enforcement_level=everyone", "protected main rejected direct writes on 2026-08-25"],
+      "note": "The public repository main branch is protected, pr-gate is required for everyone, and direct writes are rejected in favor of the pull-request path. The configured protection also blocks force-push/deletion as established during the pre-public platform setup."
     },
     "repository_security_features": {
-      "status": "pending",
-      "note": "Enable the public repository security controls documented in docs/PUBLICATION_CHECKLIST.md, including secret scanning/push protection, Dependabot security features and Private Vulnerability Reporting when available."
+      "status": "approved",
+      "review_type": "github-platform-verification",
+      "reviewed_by": "project-maintainer",
+      "reviewed_at": "2026-08-25",
+      "evidence": ["secret_scanning=enabled", "secret_scanning_push_protection=enabled", "Dependabot security updates enabled", "Private Vulnerability Reporting enabled", "CodeQL run 32887055503 success", "dependency graph run 32886291666 success"],
+      "note": "Public repository security controls were verified after the visibility transition: secret scanning and push protection are enabled, Dependabot security updates are enabled and unpaused, Private Vulnerability Reporting is enabled, the dependency graph is active, and the pinned CodeQL workflow completed successfully on public main. Generic/non-provider pattern scanning and validity checks are account-tier features not available to this user-owned public repository and are not release blockers."
     },
     "dependency_license_review": {
       "status": "approved",
