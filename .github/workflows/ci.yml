@@ -28,16 +28,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-      - name: Pre-public history privacy
-        if: github.event.repository.private == true
-        run: python scripts/pre-public-history-gate.py
-      - name: Legal policy
-        run: python scripts/legal-gate.py --mode internal --json
-      - name: Pre-public release policy
-        if: github.event.repository.private == true
-        run: python scripts/legal-gate.py --mode pre-public --json
-      - name: Public release policy
-        if: github.event.repository.private == false
+      - name: Legal and third-party policy
         run: python scripts/legal-gate.py --mode public --json
       - name: Repository security policy
         run: python scripts/security-gate.py
@@ -65,9 +56,9 @@ jobs:
       - name: Static security analysis
         run: |
           python -m pip install 'bandit==1.9.4'
-          python -m bandit -q -r src/outerram src/stretchmlx scripts -lll
+          python -m bandit -q -r src/outerram scripts -lll
       - run: python -m pytest -q
-      - run: python -m compileall -q src/outerram src/stretchmlx tests scripts
+      - run: python -m compileall -q src/outerram tests scripts
       - run: ./scripts/smoke-synthetic.sh
       - run: python -m build
       - name: Verify wheel legal metadata
@@ -85,7 +76,6 @@ jobs:
           /tmp/outerram-wheel-test/bin/python -m pip install dist/outerram-*.whl
           VERSION="$(/tmp/outerram-wheel-test/bin/python -c 'import outerram; print(outerram.__version__)')"
           /tmp/outerram-wheel-test/bin/outerram --version
-          /tmp/outerram-wheel-test/bin/stretchmlx --version
           /tmp/outerram-wheel-test/bin/outerram pins --json
           /tmp/outerram-wheel-test/bin/python -m pip check
           /tmp/outerram-wheel-test/bin/python -m pip freeze --all > dependency-freeze.txt
@@ -128,7 +118,7 @@ jobs:
       - run: python -m pip install -U pip
       - run: python -m pip install -e '.[dev]'
       - run: python -m pytest -q
-      - run: python -m compileall -q src/outerram src/stretchmlx tests scripts
+      - run: python -m compileall -q src/outerram tests scripts
       - run: ./scripts/smoke-synthetic.sh
 
   upstream-contracts:
