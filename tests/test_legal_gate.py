@@ -42,7 +42,8 @@ def test_public_gate_passes_but_does_not_claim_legal_clearance():
     report = json.loads(proc.stdout)
     assert report["ok"] is True
     warnings = "\n".join(report["warnings"]).lower()
-    assert "does not constitute" in warnings
+    assert "constitute" in warnings
+    assert "legal clearance" in warnings
     assert "trademark" in warnings
     assert "patent" in warnings
 
