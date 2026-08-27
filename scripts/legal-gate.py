@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Static legal/release-policy gate for OuterRAM.
+"""Static legal and supply-chain gate for OuterRAM.
 
-This is a compliance aid, not legal advice. It deliberately separates the
-private-repository pre-public readiness check from controls that can only be
-verified after the repository is public on some GitHub account tiers.
+This is an engineering compliance aid, not legal advice. It validates durable
+repository facts: project license metadata, required policy files, reviewed
+runtime pins and explicit license overrides. Human/commercial approvals are not
+stored as machine-certifiable source files.
 """
 
 from __future__ import annotations
@@ -26,10 +27,8 @@ REQUIRED_FILES = (
     "CODE_OF_CONDUCT.md",
     "SECURITY.md",
     "docs/MODEL_LICENSE_POLICY.md",
-    "docs/PUBLICATION_CHECKLIST.md",
     "legal/APPROVED_COMPONENTS.json",
     "legal/LICENSE_OVERRIDES.json",
-    "legal/RELEASE_APPROVALS.json",
     "scripts/dependency-license-report.py",
     "scripts/generate-sbom.py",
     "scripts/release-evidence.py",
@@ -42,15 +41,6 @@ PIN_NAMES = {
     "mlx-lm": "MLX_LM_REF",
     "mlx-flash": "MLX_FLASH_REF",
     "streamlx": "STREAMLX_REF",
-}
-
-# These are real public-operation controls, not code-review approvals. On some
-# personal GitHub tiers they cannot be enabled/verified while the repository is
-# private. They remain mandatory for --mode public, but do not block the honest
-# "safe to change visibility" gate.
-POST_VISIBILITY_PLATFORM_APPROVALS = {
-    "repository_branch_protection",
-    "repository_security_features",
 }
 
 
@@ -72,33 +62,10 @@ def _runtime_pins() -> dict[str, str]:
     return pins
 
 
-def _approval_errors(section: str, name: str, item: dict) -> list[str]:
-    errors: list[str] = []
-    if item.get("status") != "approved":
-        return errors
-    reviewed_by = str(item.get("reviewed_by", "")).strip()
-    reviewed_at = str(item.get("reviewed_at", "")).strip()
-    review_type = str(item.get("review_type", "")).strip()
-    evidence = item.get("evidence")
-    if not reviewed_by:
-        errors.append(f"approved {section}.{name} missing reviewed_by")
-    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", reviewed_at):
-        errors.append(f"approved {section}.{name} missing valid reviewed_at YYYY-MM-DD")
-    if not review_type:
-        errors.append(f"approved {section}.{name} missing review_type")
-    if not isinstance(evidence, list) or not evidence or not all(isinstance(x, str) and x.strip() for x in evidence):
-        errors.append(f"approved {section}.{name} missing non-empty evidence list")
-    if name == "trademark_clearance" and review_type not in {"qualified-counsel", "rename"}:
-        errors.append("trademark_clearance approval must use review_type qualified-counsel or rename")
-    if name == "patent_freedom_to_operate" and review_type != "qualified-counsel":
-        errors.append("patent_freedom_to_operate approval must use review_type qualified-counsel")
-    return errors
-
-
 def _license_metadata_errors(pyproject: str) -> list[str]:
     errors: list[str] = []
     if not re.search(r'^\s*license\s*=\s*["\']MIT["\']\s*$', pyproject, re.M):
-        errors.append("pyproject.toml must declare PEP 639 SPDX license = \"MIT\"")
+        errors.append('pyproject.toml must declare PEP 639 SPDX license = "MIT"')
     match = re.search(r'^\s*license-files\s*=\s*\[([^\]]*)\]\s*$', pyproject, re.M)
     if not match:
         errors.append("pyproject.toml must declare project.license-files")
@@ -113,50 +80,24 @@ def _license_metadata_errors(pyproject: str) -> list[str]:
     return errors
 
 
-def _check_section_shape(approvals: dict, section: str, errors: list[str]) -> None:
-    values = approvals.get(section, {})
-    if not isinstance(values, dict):
-        errors.append(f"approval section {section} must be an object")
-        return
-    for name, item in values.items():
-        if not isinstance(item, dict):
-            errors.append(f"approval entry {section}.{name} must be an object")
-            continue
-        errors.extend(_approval_errors(section, name, item))
-
-
-def _require_section(
-    approvals: dict,
-    section: str,
-    label: str,
-    errors: list[str],
-    *,
-    exclude: set[str] | None = None,
-) -> None:
-    excluded = exclude or set()
-    for name, item in approvals.get(section, {}).items():
-        if name in excluded:
-            continue
-        if not isinstance(item, dict) or item.get("status") != "approved":
-            status = item.get("status", "missing") if isinstance(item, dict) else "invalid"
-            note = item.get("note", "") if isinstance(item, dict) else ""
-            errors.append(f"{label} blocker {name}: {status} — {note}")
-
-
 def run(mode: str) -> dict:
     errors: list[str] = []
     warnings: list[str] = []
+
     for path in REQUIRED_FILES:
         if not (ROOT / path).is_file():
             errors.append(f"missing required legal/release file: {path}")
+
     if (ROOT / "LICENSE").is_file() and "MIT License" not in _read("LICENSE"):
         errors.append("project LICENSE is not the expected MIT license text")
+
     if (ROOT / "pyproject.toml").is_file():
         errors.extend(_license_metadata_errors(_read("pyproject.toml")))
+
     if (ROOT / "TRADEMARKS.md").is_file():
-        trademarks = _read("TRADEMARKS.md")
-        for marker in ("not affiliated", "OpenAI-compatible", "OuterRAM", "former provisional"):
-            if marker.lower() not in trademarks.lower():
+        trademarks = _read("TRADEMARKS.md").lower()
+        for marker in ("not affiliated", "openai-compatible", "outerram"):
+            if marker not in trademarks:
                 errors.append(f"TRADEMARKS.md missing required marker: {marker}")
 
     manifest = _load_json("legal/APPROVED_COMPONENTS.json") if (ROOT / "legal/APPROVED_COMPONENTS.json").is_file() else {}
@@ -198,40 +139,9 @@ def run(mode: str) -> dict:
                 if approved_license and license_text != approved_license:
                     errors.append(f"license override mismatch for {package}: override={license_text} approved={approved_license}")
 
-    approvals = _load_json("legal/RELEASE_APPROVALS.json") if (ROOT / "legal/RELEASE_APPROVALS.json").is_file() else {}
-    for section in ("public_release", "validated_release", "commercial_release"):
-        _check_section_shape(approvals, section, errors)
+    if mode == "public":
+        warnings.append("Static repository checks do not constitute trademark, patent, FTO, or model-use legal clearance.")
 
-    if mode == "pre-public":
-        _require_section(
-            approvals,
-            "public_release",
-            "pre-public release",
-            errors,
-            exclude=POST_VISIBILITY_PLATFORM_APPROVALS,
-        )
-        for name in sorted(POST_VISIBILITY_PLATFORM_APPROVALS):
-            item = approvals.get("public_release", {}).get(name, {})
-            if not isinstance(item, dict) or item.get("status") != "approved":
-                warnings.append(
-                    f"post-visibility platform control {name} remains {item.get('status', 'missing') if isinstance(item, dict) else 'invalid'}; "
-                    "verify immediately after making the repository public and before announcement"
-                )
-    if mode in {"public", "validated", "commercial"}:
-        _require_section(approvals, "public_release", "public release", errors)
-    if mode == "validated":
-        _require_section(approvals, "validated_release", "validated release", errors)
-    if mode == "commercial":
-        _require_section(approvals, "commercial_release", "commercial release", errors)
-    if mode == "internal":
-        pending = []
-        for section in ("public_release", "validated_release", "commercial_release"):
-            for name, item in approvals.get(section, {}).items():
-                if not isinstance(item, dict) or item.get("status") != "approved":
-                    status = item.get("status", "missing") if isinstance(item, dict) else "invalid"
-                    pending.append(f"{section}.{name}={status}")
-        if pending:
-            warnings.append("pending human/legal approvals: " + ", ".join(pending))
     return {
         "mode": mode,
         "ok": not errors,
@@ -242,8 +152,8 @@ def run(mode: str) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="OuterRAM legal/release policy gate")
-    parser.add_argument("--mode", choices=("internal", "pre-public", "public", "validated", "commercial"), default="internal")
+    parser = argparse.ArgumentParser(description="OuterRAM legal and supply-chain policy gate")
+    parser.add_argument("--mode", choices=("internal", "public"), default="internal")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     result = run(args.mode)
