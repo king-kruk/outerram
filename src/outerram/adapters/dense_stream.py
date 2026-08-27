@@ -26,10 +26,7 @@ class DenseStreamAdapter(Adapter):
         ]
         env: list[tuple[str, str]] = []
         if api_key:
-            # OUTERRAM_API_KEY is canonical. Populate the legacy variable for
-            # the one-release private-test migration window only.
             env.append(("OUTERRAM_API_KEY", api_key))
-            env.append(("STRETCHMLX_API_KEY", api_key))
         if allow_unauthenticated_remote:
             argv.append("--allow-unauthenticated-remote")
         return LaunchSpec(
