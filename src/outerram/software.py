@@ -59,11 +59,7 @@ def _git_head(path: Path) -> str | None:
 
 
 def _default_streamlx_home() -> Path:
-    primary = Path.home() / ".cache" / "outerram" / "streamlx"
-    legacy = Path.home() / ".cache" / "stretchmlx" / "streamlx"
-    if not primary.exists() and legacy.exists():
-        return legacy
-    return primary
+    return Path.home() / ".cache" / "outerram" / "streamlx"
 
 
 def software_report(*, streamlx_home: str | None = None) -> dict[str, object]:
