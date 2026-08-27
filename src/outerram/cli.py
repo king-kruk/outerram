@@ -40,7 +40,7 @@ def _print(data, as_json: bool) -> None:
 
 
 def _effective_api_key(args) -> str | None:
-    return args.api_key or os.environ.get("OUTERRAM_API_KEY") or os.environ.get("STRETCHMLX_API_KEY")
+    return args.api_key or os.environ.get("OUTERRAM_API_KEY")
 
 
 def _isolated_python_environment() -> bool:
@@ -225,7 +225,7 @@ def cmd_qualify(args) -> int:
 
 
 def cmd_disk_bench(args) -> int:
-    result = benchmark_disk(args.path, size_mib=args.size_mib, chunk_mib=args.chunk_mib, random_read_kib=args.random_read_kib, random_reads=args.random_reads)
+    result = benchmark_disk(args.path, size_mib=args.size_mib, chunk_mib=args.chunk_mib, random_read_kib=args.disk_random_read_kib, random_reads=args.random_reads)
     _print(result.to_dict(), args.json)
     return 0
 
