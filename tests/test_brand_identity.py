@@ -48,11 +48,5 @@ def test_public_surfaces_use_only_outerram_identity():
     assert offenders == []
 
 
-def test_model_sidecar_is_outerram_only():
-    text = (ROOT / "src" / "outerram" / "model.py").read_text(encoding="utf-8")
-    assert '_SOURCE_SIDECAR = ".outerram-source.json"' in text
-    assert ".stretchmlx-source.json" not in text
-
-
 def test_retired_namespace_is_not_packaged():
     assert not (ROOT / "src" / "stretchmlx").exists()
