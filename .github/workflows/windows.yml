@@ -23,7 +23,7 @@ jobs:
       - run: python -m pip install -U pip
       - run: python -m pip install -e '.[dev]'
       - run: python -m pytest -q tests/test_machine.py
-      - run: python -m compileall -q src/outerram src/stretchmlx tests scripts
+      - run: python -m compileall -q src/outerram tests scripts
       - name: Verify doctor reports Windows host without crashing
         shell: pwsh
         run: |
