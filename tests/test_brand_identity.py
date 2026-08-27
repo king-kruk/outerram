@@ -5,7 +5,8 @@ from outerram import __version__
 
 ROOT = Path(__file__).resolve().parents[1]
 
-ACTIVE_OUTERRAM_FILES = (
+PUBLIC_SURFACES = (
+    "README.md",
     "CONTRIBUTING.md",
     "SECURITY.md",
     "PRIVACY.md",
@@ -17,10 +18,10 @@ ACTIVE_OUTERRAM_FILES = (
     "docs/COMPATIBILITY.md",
     "docs/VIRTUAL_MATRIX.md",
     "docs/MAC_VALIDATION.md",
+    "docs/MODEL_LICENSE_POLICY.md",
     "compatibility/README.md",
     "scripts/install-mac.sh",
     "scripts/release-candidate.sh",
-    "scripts/public-release-gate.sh",
     "scripts/release-evidence.py",
     "scripts/verify-release-artifacts.py",
     ".github/ISSUE_TEMPLATE/bug_report.yml",
@@ -28,56 +29,30 @@ ACTIVE_OUTERRAM_FILES = (
 )
 
 
-def test_outerram_is_primary_package_and_cli_identity():
+def test_outerram_is_the_only_package_and_cli_identity():
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     assert 'name = "outerram"' in pyproject
     assert f'version = "{__version__}"' in pyproject
     assert 'outerram = "outerram.entry:main"' in pyproject
-    assert 'stretchmlx = "outerram.entry:main"' in pyproject
+    assert "stretchmlx" not in pyproject.lower()
     assert "macllm" not in pyproject.lower()
-    assert __version__ == "0.3.0rc2"
+    assert __version__ == "0.3.0rc3"
 
 
-def test_active_product_surfaces_do_not_use_retired_name():
+def test_public_surfaces_use_only_outerram_identity():
     offenders = []
-    for relative in ACTIVE_OUTERRAM_FILES:
+    for relative in PUBLIC_SURFACES:
         text = (ROOT / relative).read_text(encoding="utf-8")
-        if "StretchMLX" in text:
+        if "stretchmlx" in text.lower() or "macllm" in text.lower():
             offenders.append(relative)
     assert offenders == []
 
 
-def test_readme_identifies_outerram_and_limits_retired_name_to_migration_context():
-    text = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert text.startswith("# OuterRAM\n")
-    assert "## Rename / compatibility window" in text
-    assert "provisional name **StretchMLX**" in text
-    assert "`outerram` is the canonical command and package identity" in text
-
-
-def test_model_sidecar_writes_outerram_and_keeps_legacy_read_fallback():
+def test_model_sidecar_is_outerram_only():
     text = (ROOT / "src" / "outerram" / "model.py").read_text(encoding="utf-8")
     assert '_SOURCE_SIDECAR = ".outerram-source.json"' in text
-    assert '_LEGACY_SOURCE_SIDECAR = ".stretchmlx-source.json"' in text
+    assert ".stretchmlx-source.json" not in text
 
 
-def test_model_license_policy_documents_legacy_sidecar_as_migration_only():
-    text = (ROOT / "docs" / "MODEL_LICENSE_POLICY.md").read_text(encoding="utf-8")
-    assert "Provenance captured by OuterRAM" in text
-    assert "`.outerram-source.json`" in text
-    assert "legacy `.stretchmlx-source.json`" in text
-    assert "new materializations write `.outerram-source.json`" in text
-
-
-def test_legacy_namespace_contains_no_duplicate_implementation():
-    legacy = ROOT / "src" / "stretchmlx"
-    tracked_python = sorted(path.relative_to(legacy).as_posix() for path in legacy.rglob("*.py"))
-    assert tracked_python == ["__init__.py"]
-    text = (legacy / "__init__.py").read_text(encoding="utf-8")
-    assert "single OuterRAM implementation" in text
-    assert 'importlib.import_module(f"outerram.{_name}")' in text
-
-
-def test_retired_name_only_exists_as_explicit_transition_cli_alias():
-    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    assert pyproject.count('stretchmlx = "outerram.entry:main"') == 1
+def test_retired_namespace_is_not_packaged():
+    assert not (ROOT / "src" / "stretchmlx").exists()
