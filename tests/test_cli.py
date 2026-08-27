@@ -81,10 +81,9 @@ def test_ready_can_explicitly_allow_unpinned_runtime(monkeypatch):
     assert cli.cmd_ready(args) == 0
 
 
-def test_probe_prefers_outerram_api_key(monkeypatch):
+def test_probe_uses_outerram_api_key(monkeypatch):
     captured = {}
     monkeypatch.setenv("OUTERRAM_API_KEY", "new-key")
-    monkeypatch.setenv("STRETCHMLX_API_KEY", "legacy-key")
     def fake_probe(base_url, *, api_key, timeout, test_tools):
         captured.update(base_url=base_url, api_key=api_key, timeout=timeout, test_tools=test_tools)
         return {"healthy": True, "chat_completed": True, "response_ok": True, "tool_call_completed": None}
@@ -94,17 +93,16 @@ def test_probe_prefers_outerram_api_key(monkeypatch):
     assert captured["api_key"] == "new-key"
 
 
-def test_probe_keeps_legacy_api_key_fallback(monkeypatch):
+def test_probe_without_outerram_api_key_uses_no_ambient_fallback(monkeypatch):
     captured = {}
     monkeypatch.delenv("OUTERRAM_API_KEY", raising=False)
-    monkeypatch.setenv("STRETCHMLX_API_KEY", "legacy-key")
     def fake_probe(base_url, *, api_key, timeout, test_tools):
         captured["api_key"] = api_key
         return {"healthy": True, "chat_completed": True, "response_ok": True, "tool_call_completed": None}
     monkeypatch.setattr(cli, "probe_server", fake_probe)
     args = SimpleNamespace(base_url="http://127.0.0.1:8080/v1", api_key=None, timeout=2.0, tool_call=False, json=True)
     assert cli.cmd_probe(args) == 0
-    assert captured["api_key"] == "legacy-key"
+    assert captured["api_key"] is None
 
 
 def test_benchmark_uses_outerram_api_key_from_environment(monkeypatch):
