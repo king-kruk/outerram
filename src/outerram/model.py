@@ -12,7 +12,6 @@ from .types import CheckpointKind, ModelInfo, ModelSource
 
 _GIB = 1024 ** 3
 _SOURCE_SIDECAR = ".outerram-source.json"
-_LEGACY_SOURCE_SIDECAR = ".stretchmlx-source.json"
 
 
 def _infer_hf_snapshot_revision(path: Path) -> str | None:
@@ -296,9 +295,6 @@ def inspect_local_model(path: str | Path) -> ModelInfo:
     base_models: tuple[str, ...] = ()
     license_metadata_source = None
     sidecar = p / _SOURCE_SIDECAR
-    legacy_sidecar = p / _LEGACY_SOURCE_SIDECAR
-    if not sidecar.exists() and legacy_sidecar.exists():
-        sidecar = legacy_sidecar
     if sidecar.exists():
         try:
             source_meta = json.loads(sidecar.read_text(encoding="utf-8"))

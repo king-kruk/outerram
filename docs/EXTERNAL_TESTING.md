@@ -1,6 +1,6 @@
 # External tester guide
 
-OuterRAM `0.3.0rc2` is a technical release candidate for Apple Silicon. It is not a claim that every runtime/model combination works on every Mac, and technical compatibility is not legal clearance for any model.
+OuterRAM `0.3.0rc3` is a technical release candidate for Apple Silicon. It is not a claim that every runtime/model combination works on every Mac, and technical compatibility is not legal clearance for any model.
 
 ## 0. Virtual qualification
 
@@ -9,7 +9,7 @@ outerram simulate --json
 outerram simulate-matrix --json
 ```
 
-These commands exercise planner/API contracts without claiming physical Metal or SSD performance.
+These commands exercise planner and API contracts without claiming physical Metal or SSD performance.
 
 ## 1. Install
 
@@ -21,7 +21,7 @@ python -m pip install -e .
 outerram --version
 ```
 
-Expected version: `0.3.0rc2`.
+Expected version: `0.3.0rc3`.
 
 ## 2. Inspect the host
 
@@ -29,7 +29,7 @@ Expected version: `0.3.0rc2`.
 outerram doctor --json > doctor.json
 ```
 
-Real execution requires supported Apple Silicon + macOS. Planning/package tests may run elsewhere.
+Real execution requires supported Apple Silicon and macOS. Planning and package tests may run elsewhere.
 
 ## 3. Materialize an immutable checkpoint
 
@@ -39,7 +39,7 @@ LOCAL="$(outerram fetch "$REMOTE" --path-only)"
 outerram inspect "$LOCAL" --json > model.json
 ```
 
-Review the exact model/revision license separately. Download success is not permission for commercial use or redistribution.
+Review the exact model and revision license separately. Download success is not permission for commercial use or redistribution.
 
 ## 4. Plan and launch
 
@@ -50,6 +50,8 @@ outerram bootstrap "$LOCAL"
 outerram ready "$LOCAL" --json > ready.json
 outerram serve "$LOCAL" --port 8080
 ```
+
+On macOS, `serve` replaces the OuterRAM launcher with the selected runtime after validation. The orchestration process should therefore not remain as a separate waiting Python process during steady-state inference.
 
 ## 5. Qualify the running API
 
@@ -62,8 +64,4 @@ outerram qualify \
   --output qualification.json
 ```
 
-A passing API/environment qualification is still not a blanket performance claim. Keep the exact model revision, host, strategy, runtime pins and evidence with any published result.
-
-## Transition alias
-
-The former private-development CLI name `stretchmlx` is retained only during the `0.3.0` release-candidate compatibility window. New testing and documentation must use `outerram`.
+A passing API and environment qualification is still not a blanket performance claim. Keep the exact model revision, host, strategy, runtime pins and evidence with any published result.

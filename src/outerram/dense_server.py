@@ -404,7 +404,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Unsafe override permitting non-loopback plaintext HTTP; prefer loopback plus SSH/TLS",
     )
     args = parser.parse_args(argv)
-    api_key = args.api_key or os.environ.get("OUTERRAM_API_KEY") or os.environ.get("STRETCHMLX_API_KEY")
+    api_key = args.api_key or os.environ.get("OUTERRAM_API_KEY")
     serve(args.model, args.host, args.port, args.ram, api_key=api_key, allow_unauthenticated_remote=args.allow_unauthenticated_remote)
     return 0
 

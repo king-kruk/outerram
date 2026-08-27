@@ -15,7 +15,7 @@ fi
 python scripts/legal-gate.py --mode internal
 python scripts/security-gate.py
 python -m pytest -q
-python -m compileall -q src/outerram src/stretchmlx tests scripts
+python -m compileall -q src/outerram tests scripts
 ./scripts/smoke-synthetic.sh
 
 rm -rf build dist src/*.egg-info

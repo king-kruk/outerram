@@ -1,4 +1,7 @@
-from outerram.launch import build_launch_spec, executable_available
+import pytest
+
+import outerram.launch as launch
+from outerram.launch import build_launch_spec, executable_available, execute
 from outerram.adapters.base import LaunchSpec
 from outerram.types import RuntimePlan, Strategy
 
@@ -37,7 +40,6 @@ def test_executable_available_rejects_missing_required_script(tmp_path):
 
 
 def test_launch_rejects_invalid_port_and_host():
-    import pytest
     current_plan = RuntimePlan(Strategy.RESIDENT, "mlx-lm", 16, 4, 12, 8, None, "test")
     with pytest.raises(ValueError, match="port"): build_launch_spec(current_plan, model="/m", port=0)
     with pytest.raises(ValueError, match="port"): build_launch_spec(current_plan, model="/m", port=70000)
@@ -49,3 +51,48 @@ def test_launch_shell_never_leaks_environment_secret():
     spec = LaunchSpec(argv=("python", "server.py"), install_hint="x", description="x", env=(("API_KEY", secret),))
     rendered = spec.shell()
     assert secret not in rendered and "API_KEY=<redacted>" in rendered
+
+
+def test_execute_replaces_outerram_process_on_posix(monkeypatch):
+    spec = LaunchSpec(
+        argv=("runtime-bin", "--serve"),
+        install_hint="x",
+        description="x",
+        env=(("OUTERRAM_TEST_TOKEN", "secret"),),
+    )
+    captured = {}
+
+    monkeypatch.setattr(launch, "_supports_exec_replace", lambda: True)
+
+    def fake_execvpe(executable, argv, env):
+        captured.update(executable=executable, argv=argv, token=env.get("OUTERRAM_TEST_TOKEN"))
+        raise OSError("exec intercepted")
+
+    monkeypatch.setattr(launch.os, "execvpe", fake_execvpe)
+    with pytest.raises(OSError, match="exec intercepted"):
+        execute(spec)
+
+    assert captured == {
+        "executable": "runtime-bin",
+        "argv": ["runtime-bin", "--serve"],
+        "token": "secret",
+    }
+
+
+def test_execute_uses_subprocess_only_without_exec_support(monkeypatch):
+    spec = LaunchSpec(argv=("runtime-bin",), install_hint="x", description="x")
+    monkeypatch.setattr(launch, "_supports_exec_replace", lambda: False)
+
+    class Result:
+        returncode = 17
+
+    captured = {}
+
+    def fake_run(argv, *, check, env):
+        captured.update(argv=argv, check=check, env=env)
+        return Result()
+
+    monkeypatch.setattr(launch.subprocess, "run", fake_run)
+    assert execute(spec) == 17
+    assert captured["argv"] == ("runtime-bin",)
+    assert captured["check"] is False

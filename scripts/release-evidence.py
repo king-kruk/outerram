@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Create deterministic release/compliance evidence for an OuterRAM commit.
+"""Create deterministic release and supply-chain evidence for an OuterRAM commit.
 
-The output records what the project knew and enforced at release time. It is an
-audit artifact, not legal advice and not a substitute for trademark/patent or
-other qualified-counsel review where the release policy requires it.
+The artifact records machine-verifiable repository state. It is not legal
+advice and deliberately does not encode human trademark, patent or FTO approval.
 """
 
 from __future__ import annotations
@@ -30,7 +29,6 @@ EVIDENCE_FILES = (
     "docs/MODEL_LICENSE_POLICY.md",
     "legal/APPROVED_COMPONENTS.json",
     "legal/LICENSE_OVERRIDES.json",
-    "legal/RELEASE_APPROVALS.json",
 )
 
 PIN_NAMES = {
@@ -82,7 +80,7 @@ def gate_results() -> dict[str, dict]:
         raise RuntimeError("could not load legal gate")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return {mode: module.run(mode) for mode in ("internal", "pre-public", "public", "commercial")}
+    return {mode: module.run(mode) for mode in ("internal", "public")}
 
 
 def build_evidence(commit: str) -> dict:
@@ -93,36 +91,27 @@ def build_evidence(commit: str) -> dict:
             raise RuntimeError(f"required evidence file missing: {relative}")
         hashes[relative] = sha256_file(path)
 
-    approvals = json.loads((ROOT / "legal" / "RELEASE_APPROVALS.json").read_text(encoding="utf-8"))
-    status_summary: dict[str, dict[str, str]] = {}
-    for section in ("public_release", "commercial_release"):
-        status_summary[section] = {
-            name: str(item.get("status", "missing"))
-            for name, item in approvals.get(section, {}).items()
-            if isinstance(item, dict)
-        }
-
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "project": "OuterRAM",
         "version": project_version(),
         "git_commit": commit.lower(),
         "project_license": "MIT",
         "runtime_pins": runtime_pins(),
-        "release_approval_status": status_summary,
         "legal_gate_results": gate_results(),
         "evidence_file_sha256": hashes,
         "statements": {
             "model_weights_bundled": False,
             "legal_clearance_inferred_from_model_metadata": False,
+            "human_legal_clearance_encoded": False,
             "artifact_is_legal_opinion": False,
         },
-        "note": "Deterministic release evidence only. Pending human/counsel approvals remain blockers and are not converted into clearance by this artifact.",
+        "note": "Deterministic machine-verifiable release evidence only; trademark, patent, FTO and model-use rights require separate human review where applicable.",
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate OuterRAM release/compliance evidence")
+    parser = argparse.ArgumentParser(description="Generate OuterRAM release and supply-chain evidence")
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--commit")
     args = parser.parse_args()

@@ -1,6 +1,6 @@
-# OuterRAM legal and release notes
+# OuterRAM legal policy
 
-_Last reviewed: 2026-08-25._
+_Last reviewed: 2026-08-27._
 
 This document records project policy and engineering controls. It is not legal advice or a legal opinion.
 
@@ -10,19 +10,17 @@ OuterRAM source code is released under the MIT License in `LICENSE`. Third-party
 
 ## Third-party runtime policy
 
-OuterRAM currently orchestrates external runtimes rather than vendoring their implementations. Reviewed runtime revisions and licenses are recorded in `legal/APPROVED_COMPONENTS.json`, `legal/LICENSE_OVERRIDES.json`, `THIRD_PARTY_NOTICES.md` and `src/outerram/runtime_pins.py`.
+OuterRAM orchestrates external runtimes rather than vendoring their implementations. Reviewed runtime revisions and licenses are recorded in `legal/APPROVED_COMPONENTS.json`, `legal/LICENSE_OVERRIDES.json`, `THIRD_PARTY_NOTICES.md` and `src/outerram/runtime_pins.py`.
 
-Any future vendoring, code copying or new runtime integration requires a fresh license/provenance review before release.
+Any future vendoring, code copying or new runtime integration requires a fresh license and provenance review before release.
 
 ## Model policy
 
-OuterRAM code releases do not bundle model weights. Model licenses and base-model terms are separate from the OuterRAM license. Hugging Face metadata captured by the tool is descriptive provenance only, not legal clearance. See `docs/MODEL_LICENSE_POLICY.md`.
+OuterRAM releases do not bundle model weights. Model licenses and base-model terms are separate from the OuterRAM license. Hugging Face metadata captured by the tool is descriptive provenance only, not legal clearance. See `docs/MODEL_LICENSE_POLICY.md`.
 
-## Trademark / affiliation
+## Trademark and affiliation
 
-The former provisional product name StretchMLX was retired before public launch. The public product name is **OuterRAM**. The rename removes the known issue of embedding Apple's MLX framework name in the project brand; it is not a formal trademark-clearance opinion for OuterRAM.
-
-OuterRAM is not affiliated with, endorsed by, sponsored by or certified by Apple, OpenAI, Hugging Face, model vendors or third-party runtime maintainers. See `TRADEMARKS.md`.
+OuterRAM is not affiliated with, endorsed by, sponsored by or certified by Apple, OpenAI, Hugging Face, model vendors or third-party runtime maintainers. Project naming and automated checks are not a trademark-clearance opinion. See `TRADEMARKS.md`.
 
 ## OpenAI-compatible interface
 
@@ -30,22 +28,14 @@ OuterRAM is not affiliated with, endorsed by, sponsored by or certified by Apple
 
 ## Privacy
 
-OuterRAM has no project telemetry, analytics service, advertising or automatic crash upload. Network access occurs only for user-directed functions such as model/runtime downloads, upstream contract checks, and user-selected inference endpoints. Diagnostic reports can contain machine/model/path information and must be reviewed before public sharing. See `PRIVACY.md`.
+OuterRAM has no project telemetry, analytics service, advertising or automatic crash upload. Network access occurs for explicit user actions such as model/runtime downloads, upstream contract checks and user-selected inference endpoints. Diagnostic reports can contain machine, model and path information and should be reviewed before public sharing. See `PRIVACY.md`.
 
-## Security / user safety
+## Security and user safety
 
-The project defaults to loopback serving, fails closed on unsupported runtime/model combinations, bounds HTTP/disk diagnostic resources, avoids automatic model-repository Python-code downloads, pins reviewed upstream revisions, and runs automated static/dependency/security gates. See `SECURITY.md`.
+The project defaults to loopback serving, fails closed on unsupported runtime/model combinations, bounds HTTP and disk diagnostic resources, avoids automatic model-repository Python-code execution, pins reviewed upstream revisions, and runs automated static, dependency and security gates. See `SECURITY.md`.
 
-## Publication vs validation
+## Validation and claims
 
-OuterRAM deliberately separates three decisions:
+Source publication and package validation do not prove real-Mac performance. Inference, memory, throughput or workload claims require physical Apple Silicon evidence for the exact host, model revision, strategy and runtime configuration.
 
-1. **Public source publication** — repository/history/privacy/security/legal publication controls are satisfied.
-2. **Validated release claims** — full validation plus physical Apple Silicon evidence exists for the advertised scenario.
-3. **Commercial release/branding claims** — any additional professional trademark/patent/FTO/business review appropriate to the intended use has been completed.
-
-Source publication alone must never be represented as proof of real-Mac performance.
-
-## Automated release policy
-
-`legal/RELEASE_APPROVALS.json` is the machine-readable source for release blockers. `scripts/legal-gate.py` fails closed for requested public/validated/commercial modes while required approvals remain pending.
+Automated legal and supply-chain checks validate facts that code can establish: repository license metadata, required notices, reviewed runtime pins and explicit dependency-license overrides. They deliberately do **not** self-certify trademark clearance, patent freedom-to-operate or model-use rights.
