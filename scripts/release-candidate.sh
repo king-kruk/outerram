@@ -31,7 +31,7 @@ python -m zipfile -e "$SOURCE" "$TMP"
 (
   cd "$TMP/outerram-${VERSION}"
   python -m pytest -q
-  python -m compileall -q src/outerram src/stretchmlx tests
+  python -m compileall -q src/outerram tests
   bash ./scripts/smoke-synthetic.sh
 )
 
