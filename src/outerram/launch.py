@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from .adapters import DenseStreamAdapter, MoeStreamAdapter, ResidentAdapter
@@ -55,8 +56,30 @@ def executable_available(spec: LaunchSpec) -> bool:
     return all(Path(path).is_file() for path in spec.required_paths)
 
 
+def _supports_exec_replace() -> bool:
+    """Whether this host can replace the orchestrator with the runtime process."""
+    return os.name == "posix"
+
+
 def execute(spec: LaunchSpec) -> int:
+    """Launch a runtime without keeping an avoidable OuterRAM parent resident.
+
+    On macOS/Linux, replace the current process with the selected runtime. This
+    preserves the PID/signal model and removes the CLI/planner interpreter from
+    the steady-state inference memory footprint. Windows is planning-only today,
+    but keeps the subprocess fallback for portability and tests.
+    """
     env = os.environ.copy()
     env.update(dict(spec.env))
+
+    if _supports_exec_replace():
+        # cmd_serve prints the selected strategy/command immediately before this
+        # handoff. Flush explicitly because exec does not run Python shutdown
+        # handlers or flush buffered streams.
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os.execvpe(spec.argv[0], list(spec.argv), env)
+        raise AssertionError("os.execvpe returned unexpectedly")
+
     proc = subprocess.run(spec.argv, check=False, env=env)
     return int(proc.returncode)
