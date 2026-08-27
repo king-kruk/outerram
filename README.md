@@ -2,95 +2,63 @@
 
 **Bigger models. Same Mac.**
 
-OuterRAM is a fail-closed orchestration and compatibility layer for running large local LLMs on Apple Silicon — including models whose weights do not safely fit in unified memory.
+OuterRAM is a fail-closed orchestration layer for running large local LLMs on Apple Silicon, including models whose weights do not safely fit in unified memory.
 
-It does not reimplement model math. OuterRAM inspects the Mac and checkpoint, reserves headroom for macOS/IDE/KV cache/runtime work, validates the selected path, and launches a compatible runtime.
+OuterRAM does not reimplement model math. It inspects the host and checkpoint, reserves memory headroom, validates a compatible execution path, and hands control to the selected MLX runtime.
 
-> **Release candidate:** `0.3.0rc2`. Package, planner, API, security and virtual qualification are automated. Real Metal/performance claims remain hardware- and model-specific until physical Apple Silicon qualification is recorded.
+> **Release candidate:** `0.3.0rc3`. Package, planner, API, security, Windows diagnostics, and virtual qualification are automated. Real inference and performance claims still require physical Apple Silicon validation.
 
 ## How it works
 
 | Model state | Strategy | Runtime |
 |---|---|---|
 | Fits safely in unified memory | `resident` | `mlx-lm` |
-| Dense model exceeds safe RAM budget | `dense-stream` | `mlx-flash` + OuterRAM local API server |
+| Dense model exceeds safe RAM budget | `dense-stream` | `mlx-flash` + OuterRAM local API |
 | MoE model exceeds safe RAM budget | `moe-stream` | `streamlx` exact expert streaming |
 
-OuterRAM intentionally fails closed when it cannot prove that a model/runtime/host combination is compatible.
+OuterRAM intentionally fails closed when it cannot prove that a host/model/runtime combination is compatible.
 
-## Supported platforms and current limits
+On macOS and other POSIX hosts, `outerram serve` **replaces the orchestration process with the selected runtime** instead of keeping a waiting OuterRAM parent alive. The planner and CLI therefore do not remain as an avoidable second Python process during steady-state inference.
 
-OuterRAM is **not tied to one Mac configuration**. The planner uses the detected host, available unified memory, macOS/Python versions, checkpoint format and model architecture.
+## Supported platforms
 
 | Host / capability | Status | Notes |
 |---|---|---|
-| Apple Silicon M-series Macs | ✅ Supported host class | M1/M2/M3/M4/M5 families, including Pro/Max/Ultra variants; exact runtime/model compatibility is checked at runtime. |
-| Different unified-memory sizes | ✅ Supported | No single RAM size is hard-coded. |
-| macOS 14.0+ | ✅ Supported | Current minimum for the pinned MLX runtime stack. |
-| macOS 13.x or older | ❌ Execution unsupported | Fails closed before real runtime execution. |
-| Intel Macs | ❌ Execution unsupported | Current adapters require Apple Silicon. |
-| Linux / Windows | ⚠️ Planning/tests only | Host inspection and planning are supported; no real MLX execution backend is exposed there today. |
-| Python 3.10+ | ✅ Core/resident/MoE | `dense-stream` requires Python 3.11+. |
-| MLX / safetensors checkpoints | ✅ Primary format | Completeness and architecture are validated before launch. |
+| Apple Silicon Macs | ✅ Execution target | M-series Macs; exact model/runtime compatibility is checked at runtime. |
+| macOS 14.0+ | ✅ | Current minimum for the pinned MLX stack. |
+| Intel Macs | ❌ | Current execution adapters require Apple Silicon. |
+| Linux / Windows | ⚠️ Planning/tests | Host inspection and planning work; MLX execution is not exposed there. |
+| Python 3.10+ | ✅ Core | `dense-stream` requires Python 3.11+. |
+| MLX / safetensors checkpoints | ✅ | Completeness and architecture are validated before launch. |
 | Dense models | ✅ | Resident or dense streaming when the pinned backend supports the family. |
 | MoE models | ✅ Compatible families | Resident or exact expert streaming through `streamlx`. |
-| GGUF | ⚠️ Inspect only | Execution is rejected instead of silently guessing an unsupported backend. |
+| GGUF | ⚠️ Inspect only | Execution is rejected rather than guessed. |
 
-**Supported does not mean every model is guaranteed to run on every Mac.** Size, architecture, quantization, context length, available memory, runtime support and storage performance still matter. Use `outerram doctor`, `outerram check` and `outerram ready` on the actual machine.
+Supported does not mean every model will run on every Mac. Architecture, quantization, context length, available memory, runtime support and storage performance still matter.
 
-See [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) for the full contract.
+See [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) for the compatibility contract.
 
-## Quick install
+## Install
 
-OuterRAM is a Python CLI, so it is installed as an isolated command-line tool rather than through npm.
-
-### Option 1 — `uv` (recommended)
-
-If you already have [`uv`](https://docs.astral.sh/uv/) installed:
+### `uv` (recommended)
 
 ```bash
 uv tool install outerram
 outerram --version
 ```
 
-### Option 2 — `pipx`
-
-If you already have [`pipx`](https://pipx.pypa.io/) installed:
+### `pipx`
 
 ```bash
 pipx install outerram
 outerram --version
 ```
 
-Both methods install `outerram` into an isolated environment and expose the `outerram` command without requiring you to clone the repository or manage a project virtual environment manually.
-
-> Release candidates are published on PyPI. Homebrew distribution is planned separately.
-
-## Install for development / source testing
-
-Use this path if you want to modify OuterRAM or run the repository test suite:
-
-```bash
-git clone https://github.com/king-kruk/outerram.git
-cd outerram
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -U pip
-python -m pip install -e .
-outerram --version
-```
-
-For contributors:
-
-```bash
-python -m pip install -e '.[dev]'
-./scripts/quality-gate.sh
-python scripts/legal-gate.py --mode internal
-```
+Release candidates are published on PyPI.
 
 ## Basic workflow
 
-Real execution requires a local materialized checkpoint so inspection and launch cannot silently resolve different remote revisions.
+Real execution uses a materialized local checkpoint so inspection and launch cannot silently resolve different remote revisions.
 
 ```bash
 outerram doctor
@@ -103,7 +71,7 @@ outerram ready "$LOCAL"
 outerram serve "$LOCAL" --port 8080
 ```
 
-Then verify the running API:
+Verify the running API:
 
 ```bash
 outerram probe --base-url http://127.0.0.1:8080/v1 --tool-call
@@ -117,27 +85,26 @@ outerram qualify \
 
 ## Virtual qualification
 
-When physical Apple Silicon is unavailable, OuterRAM can test planner boundaries and API contracts without pretending simulation is a hardware benchmark:
+When physical Apple Silicon is unavailable, OuterRAM can exercise planner boundaries and API contracts without presenting synthetic numbers as hardware benchmarks:
 
 ```bash
 outerram simulate --json
 outerram simulate-matrix --json
 ```
 
-Simulation results always identify themselves as synthetic and do not authorize Metal, throughput, thermal or SSD performance claims. See [docs/VIRTUAL_MATRIX.md](docs/VIRTUAL_MATRIX.md).
+Simulation output is explicitly marked synthetic and never authorizes Metal, throughput, thermal or SSD performance claims. See [docs/VIRTUAL_MATRIX.md](docs/VIRTUAL_MATRIX.md).
 
 ## Safety-first defaults
 
-OuterRAM is designed for a single-user local workstation and deliberately favors refusal over guessing:
+OuterRAM is designed for a local workstation and favors refusal over guessing:
 
-- execution uses a local materialized checkpoint;
-- incomplete/ambiguous checkpoints fail validation;
-- model snapshots do not automatically download repository Python code;
+- execution uses a materialized local checkpoint;
+- incomplete or ambiguous checkpoints fail validation;
+- model snapshots do not automatically execute repository Python code;
 - strategy overrides do not bypass compatibility checks;
 - non-loopback plaintext HTTP serving is refused by default;
-- API keys are not sent to remote plaintext HTTP endpoints;
 - request sizes, tokens and server concurrency are bounded;
-- disk benchmarks have hard size limits and free-space safety slack;
+- disk benchmarks have size limits and free-space slack;
 - runtime bootstrap uses reviewed immutable upstream revisions by default;
 - managed StreamLX checkouts are verified for origin, revision and local modifications.
 
@@ -145,7 +112,7 @@ Read [SECURITY.md](SECURITY.md) before exposing any endpoint outside localhost.
 
 ## Local OpenAI-compatible API
 
-The dense-stream adapter exposes a local compatibility interface:
+The dense-stream adapter exposes:
 
 - `GET /health`
 - `GET /v1/models`
@@ -155,7 +122,7 @@ The dense-stream adapter exposes a local compatibility interface:
 - structured tool-call round trips where supported
 - optional Bearer authentication
 
-“OpenAI-compatible” describes protocol shape only. OuterRAM is not an OpenAI product and does not require OpenAI services for local inference.
+“OpenAI-compatible” describes protocol shape only. OuterRAM is independent and does not require OpenAI services for local inference.
 
 ## Runtime reproducibility
 
@@ -165,39 +132,33 @@ outerram bootstrap <local-model> --dry-run
 outerram upstream-check --json
 ```
 
-`--latest` is an explicit opt-out from tested upstream pins; `ready`/`serve` then require `--allow-unpinned`.
+`--latest` explicitly opts out of tested upstream pins; `ready` and `serve` then require `--allow-unpinned`.
 
-## Security and supply chain
+## Why the orchestration layer stays in Python
 
-Routine PR CI includes:
+The execution stack OuterRAM currently selects — `mlx-lm`, the pinned `mlx-flash`, and `streamlx` — is Python-facing. Rewriting only the OuterRAM control plane in Go would still require those runtimes and would either add another resident process or introduce a C/IPC bridge without removing the dominant model/Metal allocations.
 
-- repository secret/action-pin policy checks;
-- Bandit static security analysis;
-- unit/regression tests and compile checks;
-- synthetic smoke tests;
-- Windows host-detection regression coverage;
-- wheel build and legal metadata verification;
-- dependency-license inventory and CycloneDX SBOM generation;
-- `pip-audit` vulnerability scanning.
+MLX also provides official C++, C and Swift APIs. A fully native backend may become worthwhile if physical profiling shows material Python-runtime overhead inside the actual inference engine, but that would require replacing or reimplementing backend behavior rather than merely rewriting the CLI. Until measurements justify that cost, OuterRAM removes its own steady-state launcher overhead with POSIX process replacement and keeps runtime integration direct.
 
-GitHub Actions are pinned to immutable commit SHAs. CodeQL is configured for the public-repository phase. See [SECURITY.md](SECURITY.md) and [docs/PUBLICATION_CHECKLIST.md](docs/PUBLICATION_CHECKLIST.md).
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Rename / compatibility window
+## Development
 
-OuterRAM was developed privately under the provisional name **StretchMLX**. The project was renamed before public launch so the product name no longer embeds the name of Apple's MLX framework.
+```bash
+git clone https://github.com/king-kruk/outerram.git
+cd outerram
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+python -m pip install -e '.[dev]'
+./scripts/quality-gate.sh
+```
 
-During the **`0.3.0` release-candidate transition window**:
-
-- `outerram` is the canonical command and package identity;
-- the `stretchmlx` CLI entry point remains as a deprecated compatibility alias;
-- `OUTERRAM_API_KEY` is canonical, while the previous environment variable may still be read internally for migration;
-- legacy private-test metadata/cache locations may still be recognized.
-
-New integrations should use only `outerram` / `OuterRAM` / `OUTERRAM_*`. The compatibility alias is scheduled for removal after the transition window.
+Routine CI includes static security analysis, tests, compile checks, synthetic smoke tests, Windows host-detection regression coverage, package validation, dependency-license inventory, SBOM generation and vulnerability auditing.
 
 ## Legal / third-party software
 
-OuterRAM code is MIT licensed. Runtime projects and model weights retain their own licenses and are not relicensed by OuterRAM. Model availability or technical compatibility is not legal clearance for a model.
+OuterRAM code is MIT licensed. Runtime projects and model weights retain their own licenses and are not relicensed by OuterRAM. Technical compatibility is not legal clearance for a model.
 
 OuterRAM is independent and **not affiliated with, endorsed by, sponsored by, or certified by Apple, OpenAI, Hugging Face, model vendors, or third-party runtime maintainers**.
 
@@ -205,25 +166,20 @@ See [LEGAL.md](LEGAL.md), [TRADEMARKS.md](TRADEMARKS.md), [THIRD_PARTY_NOTICES.m
 
 ## Validation levels
 
-OuterRAM separates claims that are often mixed together:
-
 1. **Package validated** — tests/build/security gates pass.
 2. **Runtime compatible** — host/model/adapter pass compatibility checks.
 3. **Inference validated** — a real model runs correctly on physical Apple Silicon.
-4. **Coding-agent validated** — tools, multi-turn work, TTFT/throughput and stability meet the scenario.
-5. **Publication/commercial reviewed** — separate repository, legal and commercial gates are satisfied.
+4. **Workload validated** — tools, multi-turn work, memory, TTFT/throughput and stability meet the target scenario.
 
 Source publication does not imply level 3 or 4 performance validation.
 
-## Project docs
+## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Compatibility](docs/COMPATIBILITY.md)
 - [External testing](docs/EXTERNAL_TESTING.md)
 - [Physical Mac validation](docs/MAC_VALIDATION.md)
 - [Virtual matrix](docs/VIRTUAL_MATRIX.md)
-- [Publication checklist](docs/PUBLICATION_CHECKLIST.md)
-- [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Prior art](docs/PRIOR_ART.md)
 
 **OuterRAM — run bigger local models than your memory can hold.**
