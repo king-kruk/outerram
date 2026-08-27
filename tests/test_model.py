@@ -127,29 +127,16 @@ def test_incomplete_standard_shards_without_index_are_detected(tmp_path):
     assert info.checkpoint_complete is False and info.missing_weight_files == ("model-00002-of-00003.safetensors",)
 
 
-def test_legacy_sidecar_expected_weights_are_still_read_during_transition(tmp_path):
-    (tmp_path / "config.json").write_text(json.dumps({"model_type": "qwen"})); (tmp_path / "part-a.safetensors").write_bytes(b"a")
-    (tmp_path / ".stretchmlx-source.json").write_text(json.dumps({"schema_version": 1, "repo_id": "owner/model", "revision": "abc123", "weight_files": ["part-a.safetensors", "part-b.safetensors"]}))
-    info = inspect_local_model(tmp_path)
-    assert info.checkpoint_complete is False and info.missing_weight_files == ("part-b.safetensors",) and info.origin == "owner/model"
-
-
-def test_outerram_sidecar_takes_precedence_over_legacy_sidecar(tmp_path):
-    (tmp_path / "config.json").write_text(json.dumps({"model_type": "qwen"})); (tmp_path / "model.safetensors").write_bytes(b"x")
-    (tmp_path / ".stretchmlx-source.json").write_text(json.dumps({"repo_id": "legacy/model", "revision": "old", "weight_files": ["model.safetensors"]})); (tmp_path / ".outerram-source.json").write_text(json.dumps({"repo_id": "new/model", "revision": "new", "weight_files": ["model.safetensors"]}))
-    info = inspect_local_model(tmp_path); assert info.origin == "new/model" and info.revision == "new"
+def test_outerram_sidecar_weight_path_cannot_escape_model_directory(tmp_path):
+    model_dir = tmp_path / "model"; model_dir.mkdir(); (model_dir / "config.json").write_text(json.dumps({"model_type": "qwen"})); (tmp_path / "outside.safetensors").write_bytes(b"secret")
+    (model_dir / ".outerram-source.json").write_text(json.dumps({"schema_version": 2, "repo_id": "owner/model", "revision": "abc", "weight_files": ["../outside.safetensors"]}))
+    info = inspect_local_model(model_dir); assert info.checkpoint_complete is False and "unsafe path" in info.missing_weight_files[0]
 
 
 def test_standard_hf_cache_snapshot_preserves_origin_and_revision(tmp_path):
     snap = tmp_path / "hub" / "models--owner--model" / "snapshots" / "abcdef1234567890"; snap.mkdir(parents=True)
     (snap / "config.json").write_text(json.dumps({"model_type": "qwen"})); (snap / "model.safetensors").write_bytes(b"x")
     info = inspect_local_model(snap); assert info.origin == "owner/model" and info.revision == "abcdef1234567890"
-
-
-def test_legacy_sidecar_weight_path_cannot_escape_model_directory(tmp_path):
-    model_dir = tmp_path / "model"; model_dir.mkdir(); (model_dir / "config.json").write_text(json.dumps({"model_type": "qwen"})); (tmp_path / "outside.safetensors").write_bytes(b"secret")
-    (model_dir / ".stretchmlx-source.json").write_text(json.dumps({"schema_version": 1, "repo_id": "owner/model", "revision": "abc", "weight_files": ["../outside.safetensors"]}))
-    info = inspect_local_model(model_dir); assert info.checkpoint_complete is False and "unsafe path" in info.missing_weight_files[0]
 
 
 def test_safetensors_index_weight_path_cannot_escape_model_directory(tmp_path):
