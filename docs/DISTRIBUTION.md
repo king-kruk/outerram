@@ -1,6 +1,6 @@
 # Distribution
 
-OuterRAM uses package-manager distribution for end users and keeps source/development installation separate.
+OuterRAM uses package-manager distribution for end users and keeps source and development installation separate.
 
 ## End-user targets
 
@@ -18,7 +18,7 @@ Alternative isolated Python CLI install:
 pipx install outerram
 ```
 
-For development snapshots that are not published to PyPI, users can install directly from GitHub:
+For development snapshots that are not published to PyPI:
 
 ```bash
 uv tool install git+https://github.com/king-kruk/outerram.git
@@ -26,19 +26,13 @@ uv tool install git+https://github.com/king-kruk/outerram.git
 
 ### Homebrew
 
-The immediately achievable Homebrew path is an official project tap:
+A project tap can provide:
 
 ```bash
 brew install king-kruk/tap/outerram
 ```
 
-A plain:
-
-```bash
-brew install outerram
-```
-
-must not be advertised until an `outerram` formula has been accepted into `homebrew/core`. Homebrew Core requires a stable, tagged, versioned release and applies its own acceptance and review policy.
+A plain `brew install outerram` must not be advertised until a formula is accepted into `homebrew/core`.
 
 ## PyPI trusted publishing
 
@@ -54,33 +48,17 @@ Publisher configuration:
 
 ## Release procedure
 
-1. Ensure `main` is green and the intended package version in `pyproject.toml` is correct.
-2. Create a GitHub Release whose tag is exactly `v<project.version>`; for example `v0.3.0rc2` for project version `0.3.0rc2`.
-3. `.github/workflows/release.yml` verifies the tag/version match, builds wheel + sdist, validates metadata, smoke-installs the wheel, and publishes to PyPI through OIDC.
+1. Ensure `main` is green and `pyproject.toml` contains the intended version.
+2. Create a GitHub Release whose tag is exactly `v<project.version>`; for example `v0.3.0rc3` for project version `0.3.0rc3`.
+3. `.github/workflows/release.yml` verifies the tag/version match, builds wheel and sdist, validates metadata, smoke-installs the wheel, and publishes to PyPI through OIDC.
 4. Verify the package on PyPI and test `uv tool install outerram` on a clean host.
-5. Build/update the Homebrew tap formula from immutable released artifacts and checksums.
-
-## Homebrew packaging policy
-
-For a project tap, use a separate public repository named `king-kruk/homebrew-tap` with the formula under `Formula/outerram.rb`. The formula should install from an immutable tagged release/PyPI source archive, pin SHA-256 checksums, and declare recursive Python resources rather than resolving moving dependencies during installation.
-
-After the tap formula is published, first-time users can install it in one command:
-
-```bash
-brew install king-kruk/tap/outerram
-```
-
-After OuterRAM has a stable release and meets Homebrew Core's acceptance requirements, submit the formula upstream. Only after that PR is accepted may the README promote:
-
-```bash
-brew install outerram
-```
+5. Update any Homebrew tap formula from immutable released artifacts and checksums.
 
 ## Security rules
 
 - Publishing workflow actions remain pinned to full commit SHAs.
 - PyPI uses OIDC Trusted Publishing, not stored API tokens.
 - Release tags must match `pyproject.toml` exactly.
-- Published artifacts are built by the release workflow and smoke-tested before upload.
-- Homebrew sources/resources must be immutable and checksum-verified.
+- Published artifacts are built and smoke-tested by the release workflow before upload.
+- Homebrew sources and resources must be immutable and checksum-verified.
 - Physical Apple Silicon validation remains a separate claim from package publication.
