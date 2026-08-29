@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="D.K BarberShop">
+  <title>D.K BarberShop</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <style>
+    *{box-sizing:border-box}html{background:#0b0b0c;color:#f5f2ea;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}body{margin:0;background:radial-gradient(circle at 80% 0,#24211c 0,#0b0b0c 42%);min-height:100vh}main{max-width:760px;margin:auto;padding:28px 18px 50px}.hero{padding:28px 8px 30px}.mark{width:74px;height:74px;border:1px solid #caa96a;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:800;letter-spacing:-2px;color:#d7b675}.eyebrow{color:#caa96a;letter-spacing:4px;font-size:12px;margin-top:22px}.hero h1{font-size:clamp(48px,11vw,78px);line-height:.93;margin:12px 0 16px;letter-spacing:-3px}.sub,.muted{color:#aaa59c}.sub{font-size:18px}.card{background:#151516;border:1px solid #292727;border-radius:24px;padding:24px;box-shadow:0 18px 60px #0008;margin-bottom:16px}.card h2{font-size:28px;margin:0 0 20px}form{display:grid;gap:18px}label,.label{display:grid;gap:8px;color:#d4d0c8;font-size:14px}input,select{width:100%;background:#0f0f10;color:#fff;border:1px solid #383637;border-radius:14px;padding:14px;font-size:16px;outline:none}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.slot{border:1px solid #393637;background:#101011;color:#e6e2d9;border-radius:12px;padding:11px 4px;font-size:15px}.slot.active{background:#caa96a;color:#0b0b0c;border-color:#caa96a;font-weight:700}.cta,.cancel{border:0;border-radius:15px;padding:16px;background:#d1ad67;color:#111;font-size:18px;font-weight:800}.cancel{padding:8px 12px;font-size:13px;background:#282526;color:#ddd}.cta:disabled{opacity:.6}.status{background:#211f1b;border:1px solid #6f5b38;padding:12px;border-radius:12px;margin:0;text-align:center}.appt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #292727}.appt:first-child{border-top:0}.appt b{display:block;margin-bottom:4px}footer{text-align:center;color:#68645c;margin-top:28px;font-size:12px}@media(max-width:520px){main{padding:18px 12px 40px}.card{padding:18px}.grid{grid-template-columns:repeat(3,1fr)}}
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero"><div class="mark">DK</div><p class="eyebrow">D.K BARBERSHOP</p><h1>נראה טוב.<br>מרגיש חד.</h1><p class="sub">קובעים תור בכמה שניות.</p></section>
+  <section class="card"><h2>קביעת תור</h2><form id="booking">
+    <label>שירות<select id="service" required><option>טוען שירותים…</option></select></label>
+    <label>תאריך<input id="date" type="date" required></label>
+    <div><span class="label">שעה</span><div id="slots" class="grid"><span class="muted">טוען שעות…</span></div></div>
+    <label>שם מלא<input id="name" autocomplete="name" placeholder="ישראל ישראלי" required></label>
+    <label>טלפון<input id="phone" dir="ltr" inputmode="tel" autocomplete="tel" placeholder="050-0000000" required></label>
+    <button id="submit" class="cta">קבע תור</button>
+    <p id="status" class="status" hidden></p>
+  </form></section>
+  <section class="card"><h2>התורים שלי</h2><div id="appointments"><p class="muted">תורים שקבעת מהמכשיר הזה יופיעו כאן.</p></div></section>
+  <footer>© D.K BarberShop</footer>
+</main>
+<script>
+const URL='https://tsmqmdwybxbjcwukjgns.supabase.co';
+const KEY='sb_publishable_qESD9TaPe54teNRTvUrV_g_VKtqcuKS';
+const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
+const $=id=>document.getElementById(id);let services=[],busy=[],chosenTime='';
+const pad=n=>String(n).padStart(2,'0');
+const dstr=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+async function api(path,opt={}){const r=await fetch(URL+path,{...opt,headers:{...H,...(opt.headers||{})}});if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json()}
+function allSlots(){const a=[];for(let h=9;h<19;h++)for(const m of[0,20,40])a.push(`${pad(h)}:${pad(m)}`);return a}
+async function loadServices(){services=await api('/rest/v1/services?select=id,name,duration_minutes,price_nis&active=eq.true&order=sort_order.asc');$('service').innerHTML=services.map(s=>`<option value="${s.id}">${s.name} · ${s.duration_minutes} דק׳${s.price_nis?` · ₪${s.price_nis}`:''}</option>`).join('');renderSlots()}
+async function loadBusy(){chosenTime='';busy=await api('/rest/v1/rpc/busy_ranges_for_date',{method:'POST',body:JSON.stringify({p_date:$('date').value})});renderSlots()}
+function renderSlots(){const s=services.find(x=>x.id===$('service').value),duration=s?.duration_minutes||20;$('slots').innerHTML=allSlots().filter(t=>{const[h,m]=t.split(':').map(Number),start=h*60+m,end=start+duration;return !busy.some(b=>start<b.end_minute&&end>b.start_minute)}).map(t=>`<button type="button" class="slot${chosenTime===t?' active':''}" data-time="${t}">${t}</button>`).join('')||'<span class="muted">אין תורים פנויים</span>';$('slots').querySelectorAll('.slot').forEach(b=>b.onclick=()=>{chosenTime=b.dataset.time;renderSlots()})}
+async function loadAppointments(){const tokens=JSON.parse(localStorage.getItem('dk_tokens')||'[]');if(!tokens.length)return;try{const data=await api('/rest/v1/rpc/appointments_by_tokens',{method:'POST',body:JSON.stringify({p_tokens:tokens})});$('appointments').innerHTML=data.filter(a=>a.status!=='cancelled').map(a=>`<div class="appt"><div><b>${a.service_name}</b><span>${a.local_date} · ${String(a.local_time).slice(0,5)}</span></div><button class="cancel" data-token="${a.access_token}">בטל</button></div>`).join('')||'<p class="muted">אין תורים פעילים.</p>';$('appointments').querySelectorAll('.cancel').forEach(b=>b.onclick=async()=>{if(!confirm('לבטל את התור?'))return;await api('/rest/v1/rpc/cancel_appointment',{method:'POST',body:JSON.stringify({p_access_token:b.dataset.token})});await loadAppointments();await loadBusy()})}catch(e){console.error(e)}}
+$('date').min=dstr(new Date());$('date').value=dstr(new Date(Date.now()+86400000));$('date').onchange=loadBusy;$('service').onchange=renderSlots;
+$('booking').onsubmit=async e=>{e.preventDefault();const st=$('status');st.hidden=false;if(!chosenTime){st.textContent='נא לבחור שעה';return}const btn=$('submit');btn.disabled=true;btn.textContent='קובע תור…';try{const data=await api('/rest/v1/rpc/book_appointment',{method:'POST',body:JSON.stringify({p_service_id:$('service').value,p_customer_name:$('name').value.trim(),p_phone:$('phone').value.trim(),p_date:$('date').value,p_time:chosenTime})});const token=data?.[0]?.access_token;if(token){const old=JSON.parse(localStorage.getItem('dk_tokens')||'[]');localStorage.setItem('dk_tokens',JSON.stringify([...new Set([...old,token])]))}st.textContent=`התור נקבע בהצלחה ל-${$('date').value} בשעה ${chosenTime} ✓`;chosenTime='';await loadBusy();await loadAppointments()}catch(err){console.error(err);st.textContent='לא הצלחנו לקבוע את התור. ייתכן שהשעה נתפסה — בחר שעה אחרת.'}finally{btn.disabled=false;btn.textContent='קבע תור'}};
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}));
+Promise.all([loadServices(),loadBusy(),loadAppointments()]).catch(e=>{console.error(e);$('status').hidden=false;$('status').textContent='לא הצלחנו להתחבר למערכת התורים.'});
+</script>
+</body></html>
